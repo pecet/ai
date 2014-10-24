@@ -24,9 +24,9 @@ MOVE_SPEED = 139
 ENEMY_SPEED = 150
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
 NUM_OBSTACLES = 40
-NUM_ENEMIES = 2
-DONT_CLEAR = True # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
-ENEMY_RADIUS = 1
+NUM_ENEMIES = 33
+DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
+ENEMY_RADIUS = 6
 
 # zmienne
 obstacles = []
