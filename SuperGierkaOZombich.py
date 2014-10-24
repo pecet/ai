@@ -23,6 +23,8 @@ HEIGHT = 768
 MOVE_SPEED = 139
 ENEMY_SPEED = 150
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
+NUM_OBSTACLES = 40
+NUM_ENEMIES = 150
 
 # zmienne
 obstacles = []
@@ -305,7 +307,7 @@ def reset(behaviorForAll=None):
 	
 	# sciany 
 	obstacles = []
-	for i in xrange(1, 40):
+	for i in xrange(0, NUM_OBSTACLES):
 		obstacles.append(Obstacle())
 		
 	# player
@@ -313,7 +315,7 @@ def reset(behaviorForAll=None):
 		
 	# przeciwnicy
 	enemies = []
-	for i in xrange(1, 150):
+	for i in xrange(0, NUM_ENEMIES):
 		enemies.append(Enemy(obstacles, player))
 		
 	if behaviorForAll is not None:
