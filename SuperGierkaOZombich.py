@@ -22,6 +22,7 @@ WIDTH = 1024
 HEIGHT = 768
 MOVE_SPEED = 139
 ENEMY_SPEED = 150
+WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
 
 # zmienne
 obstacles = []
@@ -225,6 +226,17 @@ class Enemy:
 		newPosition = Vec2d(self.x, self.y) + (self.velocity * dt)
 		self.x = newPosition.x
 		self.y = newPosition.y
+		
+		# "zawijanie" wspolrzednych x oraz y
+		if WRAP_AROUND:
+			if self.x > WIDTH:
+				self.x = 0.0
+			elif self.x < 0.0:
+				self.x = WIDTH
+			if self.y > HEIGHT:
+				self.y = 0.0
+			elif self.y < 0.0:
+				self.y = HEIGHT			
 
 	def __repr__(self):
 		return 'position=%s, velocity=%s, heading=%s' % (self.position(), self.velocity, self.heading)
