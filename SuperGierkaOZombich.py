@@ -208,6 +208,9 @@ class Enemy:
 		if toReturn.get_length() < 0.0001: 
 			return self.seek(player, obstacles, enemies, dt)
 		
+		# pasuje tez zmniejszyc raczej max predkosc do maxspeeda
+		toReturn.normalized() * self.maxSpeed
+		
 		return toReturn
 
 		
