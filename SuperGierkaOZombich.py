@@ -25,7 +25,8 @@ ENEMY_SPEED = 150
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
 NUM_OBSTACLES = 40
 NUM_ENEMIES = 50
-DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego enemiesa bo wtedy sie ladne sciezka narysuje
+DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
+ENEMY_RADIUS = 6
 
 # zmienne
 obstacles = []
@@ -51,24 +52,44 @@ def truncate(vector, max):
 	else:
 		return Vec2d(vector) # kopia
 		
-		
-def pointToWorldSpace(point, heading, side, position):
-	# macierz transformacji tutaj zapisana jako niemacierz dla prostoty
-	# 3x3 bo z translacją
-	m11 = heading.x
-	m12 = heading.y 
-	m13 = 0
-	m21 = side.x
-	m22 = side.y
-	m23 = 0
-	m31 = position.x
-	m32 = position.y
-	m33 = 1
+
+def matrixMultiply(X, Y): # http://www.programiz.com/python-programming/examples/multiply-matrix
+	result = [[sum(a*b for a,b in zip(X_row,Y_col)) for Y_col in zip(*Y)] for X_row in X]
+	return result
 	
-	x = (point.x * m11) + (point.y * m21) + (m31)
-	y = (point.x * m12) + (point.y * m22) + (m32)
+# translacja funkcji z cpp na pythona (mam nadzieje ze dobrze)
+# zrodla w cpp:
+# https://github.com/chenyukang/Basketball_demo/blob/master/src/C2DMatrix.h
+# http://read.pudn.com/downloads121/sourcecode/graph/516833/Buckland_Chapter4-SimpleSoccer/Common/2D/Transformations.h__.htm
 	
+def transformVector(vector, matrix):
+	m11 = matrix[0][0]
+	m12 = matrix[0][1]
+	m13 = matrix[0][2]
+
+	m21 = matrix[1][0]
+	m22 = matrix[1][1]
+	m23 = matrix[1][2]	
+	
+	m31 = matrix[2][0]
+	m32 = matrix[2][1]
+	m33 = matrix[2][2]		
+	
+	x = (vector.x * m11) + (vector.y * m21) + (m31)
+	y = (vector.x * m12) + (vector.y * m22) + (m32)	
 	return Vec2d(x, y)
+	
+def pointToWorldSpace(point, heading, side, position):
+	rotate = [[heading.x, heading.y, 0], 
+	[side.x, side.y, 0],
+	[0, 0, 1]]
+	
+	translate = [[1, 0, 0],
+	[0, 1, 0],
+	[position.x, position.y, 1]]
+	
+	transform = matrixMultiply(rotate, translate)
+	return transformVector(point, transform)
 		
 def changeBehaviorOfAll(enemies, behavior):
 	for en in enemies:
@@ -101,7 +122,7 @@ class Enemy:
 		while repeatRandom:
 			self.x = random.randrange(25, WIDTH - 25)
 			self.y = random.randrange(25, HEIGHT - 25)
-			self.r = 6
+			self.r = ENEMY_RADIUS
 			
 			repeatRandom = False
 			for ob in obstacles:
@@ -192,12 +213,11 @@ class Enemy:
 		return desiredVelocity - self.velocity
 
 	
-	def wander(self, player, obstacles, enemies, dt): # nie wiem czy dobrze, chyba nie
-		# chociaz po zmianie ponizszych stalych i wlaczeniu DONT_CLEAR wyglada to calkiem ok 
-		# stale ale tylko tutaj wiec je daje na razie w funkcji, mozna przeniesc jako skladowe klasy
-		wanderRadius = 123 # promien kola po ktorym poruszamy sie
-		wanderDistance = 15 # odleglosc od celu/kola
-		wanderJitter = 95 # stopien losowosci (wiecej = bardziej losowo)
+	def wander(self, player, obstacles, enemies, dt): 
+		# ja tak te parametry rozumiem (+ sprawdzone doswiadczalnie przez ich zmiane)
+		wanderRadius = 200 # promien kola po ktorym poruszamy sie (im wiecej tym mniejszy) / jak bardzo skrecamy 0 = linia prosta
+		wanderDistance = 40 # odleglosc od srodka kola / podobienstwo do idealnego kola
+		wanderJitter = 200 # stopien losowosci (wiecej = bardziej losowo) 0 = idealne kola
 		self.wanderTarget += Vec2d(random.uniform(-1.0, 1.0) * wanderJitter, random.uniform(-1.0, 1.0) * wanderJitter)
 		self.wanderTarget = self.wanderTarget.normalized()
 		self.wanderTarget *= wanderRadius
