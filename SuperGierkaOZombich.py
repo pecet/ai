@@ -24,7 +24,8 @@ MOVE_SPEED = 139
 ENEMY_SPEED = 150
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
 NUM_OBSTACLES = 40
-NUM_ENEMIES = 150
+NUM_ENEMIES = 50
+DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego enemiesa bo wtedy sie ladne sciezka narysuje
 
 # zmienne
 obstacles = []
@@ -192,10 +193,11 @@ class Enemy:
 
 	
 	def wander(self, player, obstacles, enemies, dt): # nie wiem czy dobrze, chyba nie
+		# chociaz po zmianie ponizszych stalych i wlaczeniu DONT_CLEAR wyglada to calkiem ok 
 		# stale ale tylko tutaj wiec je daje na razie w funkcji, mozna przeniesc jako skladowe klasy
-		wanderRadius = 40 # promien kola po ktorym poruszamy sie
-		wanderDistance = 5 # odleglosc od celu
-		wanderJitter = 45 # stopien losowosci (wiecej = bardziej losowo)
+		wanderRadius = 123 # promien kola po ktorym poruszamy sie
+		wanderDistance = 15 # odleglosc od celu/kola
+		wanderJitter = 95 # stopien losowosci (wiecej = bardziej losowo)
 		self.wanderTarget += Vec2d(random.uniform(-1.0, 1.0) * wanderJitter, random.uniform(-1.0, 1.0) * wanderJitter)
 		self.wanderTarget = self.wanderTarget.normalized()
 		self.wanderTarget *= wanderRadius
@@ -342,12 +344,14 @@ def main():
 	reset()
 	
 	clock = pygame.time.Clock()
+	screen.fill((222,222,222)) 
 	
 	while True: # glowna petla
 		dt = clock.tick(60) / 1000.0 # 60 fps max
 		# dt = delta czasu ktora naprawde uplynela, clock tick zwraca milisekundy stad dzielenie przez 1000
 		#print dt 
-		screen.fill((222,222,222)) 
+		if not DONT_CLEAR:
+			screen.fill((222,222,222)) 
 	
 		for ob in obstacles:
 			ob.draw(screen)
@@ -376,6 +380,7 @@ def main():
 					right = True	
 					
 				if event.key == pygame.K_r:
+					screen.fill((222,222,222)) 
 					reset(enemies[0].behavior) # restujemy pamietajac ustawiony behavior
 				elif event.key == pygame.K_1:
 					changeBehaviorOfAll(enemies, 'seek')
