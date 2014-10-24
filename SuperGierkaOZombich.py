@@ -24,9 +24,9 @@ MOVE_SPEED = 139
 ENEMY_SPEED = 150
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
 NUM_OBSTACLES = 40
-NUM_ENEMIES = 50
-DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
-ENEMY_RADIUS = 6
+NUM_ENEMIES = 2
+DONT_CLEAR = True # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
+ENEMY_RADIUS = 1
 
 # zmienne
 obstacles = []
@@ -232,9 +232,6 @@ class Enemy:
 		# tego w sumie nie ma w ksiazce ale IMHO musi byc BO gdy velocity = 0 to heading = 0 bo nigdzie sie nie poruszamy a skoro tak to dalej sie nie bedziemy poruszac wiec jakis fallback musi byc czy cos :)		
 		if toReturn.get_length() < 0.0001: 
 			return self.seek(player, obstacles, enemies, dt)
-		
-		# pasuje tez zmniejszyc raczej max predkosc do maxspeeda
-		toReturn.normalized() * self.maxSpeed
 		
 		return toReturn
 
