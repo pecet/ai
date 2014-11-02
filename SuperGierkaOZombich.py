@@ -21,12 +21,12 @@ from vec2d import Vec2d
 WIDTH = 1024
 HEIGHT = 768
 MOVE_SPEED = 139
-ENEMY_SPEED = 150
+ENEMY_SPEED = 75
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
 NUM_OBSTACLES = 40
 NUM_ENEMIES = 33
 DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
-ENEMY_RADIUS = 6
+ENEMY_RADIUS = 13
 
 # zmienne
 obstacles = []
@@ -90,6 +90,13 @@ def pointToWorldSpace(point, heading, side, position):
 	
 	transform = matrixMultiply(rotate, translate)
 	return transformVector(point, transform)
+	
+def vectorToWorldSpace(vec, heading, side):
+	rotate = [[vec.x, vec.y, 0], 
+	[side.x, side.y, 0],
+	[0, 0, 1]]
+	
+	return transformVector(vec, transform)	
 		
 def changeBehaviorOfAll(enemies, behavior):
 	for en in enemies:
