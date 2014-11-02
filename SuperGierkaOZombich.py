@@ -97,6 +97,26 @@ def vectorToWorldSpace(vec, heading, side):
 	[0, 0, 1]]
 	
 	return transformVector(vec, transform)	
+	
+def pointToLocalSpace(vec, heading, side):
+	trans = [[heading.x, side.x, 0], 
+	[heading.y, side.y, 0],
+	[0, 0, 1]]
+
+	return transformVector(vec, trans)
+			
+def vectorToLocalSpace(point, heading, side, position):
+
+	tx = -position.dot(heading)
+	ty = -position.dot(side)
+
+	trans = [[heading.x, side.x, 0], 
+	[heading.y, side.y, 0],
+	[tx, ty, 1]]
+
+	return transformVector(point, trans)
+	
+	
 		
 def changeBehaviorOfAll(enemies, behavior):
 	for en in enemies:
@@ -244,10 +264,19 @@ class Enemy:
 
 		
 	# ---------------------------------
+	def avoidance(self, player, obstacles, enemies, dt):
+	
+		
+	
+		return Vec2d(0, 0)
+	
+	
+	# ---------------------------------
 		
 	def update(self, player, obstacles, enemies, dt):
 		steeringForce = self.steering(player, obstacles, enemies, dt)
-		acceleration = steeringForce / 1.0 # wspolczynnik masy albo jakikolwiek skalujacy przyspieszenie
+		avoidForce = self.avoidance(player, obstacles, enemies, dt)
+		acceleration = (steeringForce + avoidForce) / 1.0 # wspolczynnik masy albo jakikolwiek skalujacy przyspieszenie
 		self.velocity += acceleration * dt
 		self.velocity = truncate(self.velocity, self.maxSpeed)
 		self.heading = self.velocity.normalized()
