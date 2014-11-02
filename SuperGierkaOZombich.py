@@ -98,14 +98,14 @@ def vectorToWorldSpace(vec, heading, side):
 	
 	return transformVector(vec, transform)	
 	
-def pointToLocalSpace(vec, heading, side):
+def vectorToLocalSpace(vec, heading, side):
 	trans = [[heading.x, side.x, 0], 
 	[heading.y, side.y, 0],
 	[0, 0, 1]]
 
 	return transformVector(vec, trans)
 			
-def vectorToLocalSpace(point, heading, side, position):
+def pointToLocalSpace(point, heading, side, position):
 
 	tx = -position.dot(heading)
 	ty = -position.dot(side)
@@ -122,12 +122,25 @@ def changeBehaviorOfAll(enemies, behavior):
 	for en in enemies:
 		en.changeBehavior(behavior)
 
+# https://code.google.com/p/thinksharp/source/browse/trunk/Steering/GameWorld.cs?r=7
+def tagObstaclesWithinViewRange(obstacles, enemy, radius):
+	counter = 0
+	for ob in obstacles:
+		ob.tag = False
+		to = ob.position() - enemy.position()
+		range = radius + ob.r
+		if (ob != enemy) and (to.get_length_sqrd() < range * range):
+			ob.tag = True
+			counter += 1
+			
+	return counter # tylko dla testu w sumie
 		
 class Obstacle:
 	def __init__(self):
 		self.x = random.randrange(0, WIDTH)
 		self.y = random.randrange(0, HEIGHT)
 		self.r = random.randrange(5, 35)
+		self.tag = False
 	def set(self, x, y, r):
 		self.x = x
 		self.y = y
@@ -165,6 +178,8 @@ class Enemy:
 		
 		self.velocity = Vec2d(0, 0)
 		self.heading = Vec2d(0, 0)
+		self.side = Vec2d(0, 0)
+		self.speed = 0
 		self.maxSpeed = ENEMY_SPEED
 		self.wanderTarget = Vec2d(WIDTH / 2, HEIGHT / 2)
 		self.changeBehavior('wander')
@@ -265,10 +280,28 @@ class Enemy:
 		
 	# ---------------------------------
 	def avoidance(self, player, obstacles, enemies, dt):
-	
+		vec = Vec2d(0, 0);
+
+		minDetectionBoxLength = 5
+		boxLength = minDetectionBoxLength + (self.speed / self.maxSpeed) * minDetectionBoxLength
+		tagObstaclesWithinViewRange(obstacles, self, boxLength)
 		
-	
-		return Vec2d(0, 0)
+		for ob in obstacles:
+			if ob.tag:
+				localPos = pointToLocalSpace(ob.position(), self.heading, self.side, self.position())
+				if localPos.x >= 0:
+					expandedRadius = ob.r + self.r
+					if math.fabs(localPos.y) < expandedRadius:
+						cX = localPos.x
+						cY = localPos.y
+						sqrtPart = math.sqrt(expandedRadius * expandedRadius - cY * cY)
+						
+						# double ip = A - SqrtPart; ksiazka str 125
+						# A = wtf?! cX?
+						
+						
+						
+		return vec
 	
 	
 	# ---------------------------------
@@ -280,6 +313,8 @@ class Enemy:
 		self.velocity += acceleration * dt
 		self.velocity = truncate(self.velocity, self.maxSpeed)
 		self.heading = self.velocity.normalized()
+		self.speed = self.velocity.get_length()
+		self.side = self.heading.perpendicular()
 		newPosition = Vec2d(self.x, self.y) + (self.velocity * dt)
 		self.x = newPosition.x
 		self.y = newPosition.y
