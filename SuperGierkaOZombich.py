@@ -23,7 +23,7 @@ HEIGHT = 768
 MOVE_SPEED = 139
 ENEMY_SPEED = 75
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
-NUM_OBSTACLES = 40
+NUM_OBSTACLES = 10
 NUM_ENEMIES = 3
 DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
 ENEMY_RADIUS = 13
@@ -182,7 +182,7 @@ class Enemy:
 		self.speed = 0
 		self.maxSpeed = ENEMY_SPEED
 		self.wanderTarget = Vec2d(WIDTH / 2, HEIGHT / 2)
-		self.changeBehavior('wander')
+		self.changeBehavior('seek')
 		
 	def set(self, x, y, r):
 		self.x = x
@@ -282,7 +282,7 @@ class Enemy:
 	def avoidance(self, player, obstacles, enemies, dt):
 		steeringForce = Vec2d(0, 0)
 
-		minDetectionBoxLength = 5
+		minDetectionBoxLength = 10
 		boxLength = minDetectionBoxLength + (self.speed / self.maxSpeed) * minDetectionBoxLength
 		tagObstaclesWithinViewRange(obstacles, self, boxLength)
 		distToClosestIP = float("inf")
@@ -316,13 +316,14 @@ class Enemy:
 		#	print distToClosestIP, closestIntersectingObstacle, localPosOfClosestObstacle
 		
 		if closestIntersectingObstacle:
-			multiplier = 1.0 + (boxLength - localPosOfClosestObstacle.x) / boxLength
+			multiplier = 100.0 + (boxLength - localPosOfClosestObstacle.x) / boxLength
 			steeringForce.y = (closestIntersectingObstacle.r - localPosOfClosestObstacle.y) * multiplier
 			brakingWeight = 0.2
 			steeringForce.x = (closestIntersectingObstacle.r - localPosOfClosestObstacle.x) * brakingWeight
 			
 			steeringForce = vectorToWorldSpace(steeringForce, self.heading, self.side)
 			
+		print steeringForce
 				
 		return steeringForce
 	
@@ -332,7 +333,7 @@ class Enemy:
 	def update(self, player, obstacles, enemies, dt):
 		steeringForce = self.steering(player, obstacles, enemies, dt)
 		avoidForce = self.avoidance(player, obstacles, enemies, dt)
-		acceleration = (steeringForce + avoidForce) / 1.0 # wspolczynnik masy albo jakikolwiek skalujacy przyspieszenie
+		acceleration = (steeringForce - avoidForce) / 1.0 # wspolczynnik masy albo jakikolwiek skalujacy przyspieszenie
 		self.velocity += acceleration * dt
 		self.velocity = truncate(self.velocity, self.maxSpeed)
 		self.heading = self.velocity.normalized()
