@@ -96,7 +96,7 @@ def vectorToWorldSpace(vec, heading, side):
 	[side.x, side.y, 0],
 	[0, 0, 1]]
 	
-	return transformVector(vec, transform)	
+	return transformVector(vec, rotate)	
 	
 def vectorToLocalSpace(vec, heading, side):
 	trans = [[heading.x, side.x, 0], 
@@ -280,11 +280,14 @@ class Enemy:
 		
 	# ---------------------------------
 	def avoidance(self, player, obstacles, enemies, dt):
-		vec = Vec2d(0, 0);
+		steeringForce = Vec2d(0, 0)
 
 		minDetectionBoxLength = 5
 		boxLength = minDetectionBoxLength + (self.speed / self.maxSpeed) * minDetectionBoxLength
 		tagObstaclesWithinViewRange(obstacles, self, boxLength)
+		distToClosestIP = float("inf")
+		closestIntersectingObstacle = None
+		localPosOfClosestObstacle = Vec2d(0, 0)
 		
 		for ob in obstacles:
 			if ob.tag:
@@ -296,12 +299,32 @@ class Enemy:
 						cY = localPos.y
 						sqrtPart = math.sqrt(expandedRadius * expandedRadius - cY * cY)
 						
-						# double ip = A - SqrtPart; ksiazka str 125
+						# double ip = A - SqrtPart; ksiazka str w pdfie 125
 						# A = wtf?! cX?
 						
+						ip = cX - sqrtPart
+						if ip <= 0:
+							ip = cX + sqrtPart
+							
+						if ip < distToClosestIP:
+							distToClosestIP = ip
+							closestIntersectingObstacle = ob
+							localPosOfClosestObstacle = localPos
 						
-						
-		return vec
+				
+		#if closestIntersectingObstacle:
+		#	print distToClosestIP, closestIntersectingObstacle, localPosOfClosestObstacle
+		
+		if closestIntersectingObstacle:
+			multiplier = 1.0 + (boxLength - localPosOfClosestObstacle.x) / boxLength
+			steeringForce.y = (closestIntersectingObstacle.r - localPosOfClosestObstacle.y) * multiplier
+			brakingWeight = 0.2
+			steeringForce.x = (closestIntersectingObstacle.r - localPosOfClosestObstacle.x) * brakingWeight
+			
+			steeringForce = vectorToWorldSpace(steeringForce, self.heading, self.side)
+			
+				
+		return -steeringForce
 	
 	
 	# ---------------------------------
