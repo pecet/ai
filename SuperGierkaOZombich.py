@@ -24,7 +24,7 @@ MOVE_SPEED = 139
 ENEMY_SPEED = 75
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
 NUM_OBSTACLES = 40
-NUM_ENEMIES = 33
+NUM_ENEMIES = 3
 DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
 ENEMY_RADIUS = 13
 
@@ -92,7 +92,7 @@ def pointToWorldSpace(point, heading, side, position):
 	return transformVector(point, transform)
 	
 def vectorToWorldSpace(vec, heading, side):
-	rotate = [[vec.x, vec.y, 0], 
+	rotate = [[heading.x, heading.y, 0], 
 	[side.x, side.y, 0],
 	[0, 0, 1]]
 	
@@ -139,7 +139,7 @@ class Obstacle:
 	def __init__(self):
 		self.x = random.randrange(0, WIDTH)
 		self.y = random.randrange(0, HEIGHT)
-		self.r = random.randrange(5, 35)
+		self.r = random.randrange(15, 55)
 		self.tag = False
 	def set(self, x, y, r):
 		self.x = x
@@ -324,7 +324,7 @@ class Enemy:
 			steeringForce = vectorToWorldSpace(steeringForce, self.heading, self.side)
 			
 				
-		return -steeringForce
+		return steeringForce
 	
 	
 	# ---------------------------------
