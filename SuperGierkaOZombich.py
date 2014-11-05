@@ -316,14 +316,15 @@ class Enemy:
 		#	print distToClosestIP, closestIntersectingObstacle, localPosOfClosestObstacle
 		
 		if closestIntersectingObstacle:
-			multiplier = 100.0 + (boxLength - localPosOfClosestObstacle.x) / boxLength
+			multiplier = 666.0 + (boxLength - localPosOfClosestObstacle.x) / boxLength
 			steeringForce.y = (closestIntersectingObstacle.r - localPosOfClosestObstacle.y) * multiplier
-			brakingWeight = 0.2
+			brakingWeight = 0.4
 			steeringForce.x = (closestIntersectingObstacle.r - localPosOfClosestObstacle.x) * brakingWeight
 			
 			steeringForce = vectorToWorldSpace(steeringForce, self.heading, self.side)
 			
-		print steeringForce
+		#if steeringForce.get_length() > 0:
+		#	print steeringForce
 				
 		return steeringForce
 	
