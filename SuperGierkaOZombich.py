@@ -552,6 +552,16 @@ def main():
 			player.y += MOVE_SPEED * dt
 				
 		if left or right or up or down:
+			if WRAP_AROUND:
+				if player.x > WIDTH:
+					player.x = 0.0
+				elif player.x < 0.0:
+					player.x = WIDTH
+				if player.y > HEIGHT:
+					player.y = 0.0
+				elif player.y < 0.0:
+					player.y = HEIGHT				
+		
 			if player.checkCollision(obstacles):
 				player.x = prevX
 				player.y = prevY
