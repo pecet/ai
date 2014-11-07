@@ -305,7 +305,7 @@ class Enemy:
 			if ob.tag:
 				localPos = pointToLocalSpace(ob.position(), self.heading, self.side, self.position())
 				if localPos.x >= 0:
-					expandedRadius = ob.r + self.r + 5
+					expandedRadius = ob.r + self.r
 					if math.fabs(localPos.y) < expandedRadius:
 						cX = localPos.x
 						cY = localPos.y
@@ -320,10 +320,6 @@ class Enemy:
 							closestIntersectingObstacle = ob
 							localPosOfClosestObstacle = localPos
 						
-				
-		#if closestIntersectingObstacle:
-		#	print distToClosestIP, closestIntersectingObstacle, localPosOfClosestObstacle
-		
 		if closestIntersectingObstacle:
 			multiplier = 666.0 + (boxLength - localPosOfClosestObstacle.x) / boxLength
 			steeringForce.y = (closestIntersectingObstacle.r - localPosOfClosestObstacle.y) * multiplier
@@ -331,9 +327,6 @@ class Enemy:
 			steeringForce.x = (closestIntersectingObstacle.r - localPosOfClosestObstacle.x) * brakingWeight
 			
 			steeringForce = vectorToWorldSpace(steeringForce, self.heading, self.side)
-			
-		#if steeringForce.get_length() > 0:
-		#	print steeringForce
 				
 		return steeringForce
 	
