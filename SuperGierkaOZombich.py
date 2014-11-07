@@ -21,12 +21,14 @@ from vec2d import Vec2d
 WIDTH = 1024
 HEIGHT = 768
 MOVE_SPEED = 139
-ENEMY_SPEED = 75
+ENEMY_SPEED = 90
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
 NUM_OBSTACLES = 10
-NUM_ENEMIES = 3
+NUM_ENEMIES = 5
 DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
 ENEMY_RADIUS = 13
+OBSTACLE_MIN_RADIUS = 20
+OBSTACLE_MAX_RADIUS = 60
 
 # zmienne
 obstacles = []
@@ -139,7 +141,7 @@ class Obstacle:
 	def __init__(self):
 		self.x = random.randrange(0, WIDTH)
 		self.y = random.randrange(0, HEIGHT)
-		self.r = random.randrange(15, 55)
+		self.r = random.randrange(OBSTACLE_MIN_RADIUS, OBSTACLE_MAX_RADIUS)
 		self.tag = False
 	def set(self, x, y, r):
 		self.x = x
@@ -159,10 +161,11 @@ class Enemy:
 		# aby mu dac szanse na ucieczke
 	
 		repeatRandom = True
+		self.r = ENEMY_RADIUS
+		
 		while repeatRandom:
 			self.x = random.randrange(25, WIDTH - 25)
 			self.y = random.randrange(25, HEIGHT - 25)
-			self.r = ENEMY_RADIUS
 			
 			repeatRandom = False
 			for ob in obstacles:
@@ -183,6 +186,7 @@ class Enemy:
 		self.maxSpeed = ENEMY_SPEED
 		self.wanderTarget = Vec2d(WIDTH / 2, HEIGHT / 2)
 		self.changeBehavior('seek')
+		self.tag = False
 		
 	def set(self, x, y, r):
 		self.x = x
@@ -279,30 +283,35 @@ class Enemy:
 
 		
 	# ---------------------------------
-	def avoidance(self, player, obstacles, enemies, dt):
+	def avoidance(self, obstacles):
 		steeringForce = Vec2d(0, 0)
 
-		minDetectionBoxLength = 10
+		minDetectionBoxLength = 14
 		boxLength = minDetectionBoxLength + (self.speed / self.maxSpeed) * minDetectionBoxLength
-		tagObstaclesWithinViewRange(obstacles, self, boxLength)
+		#tagObstaclesWithinViewRange(obstacles, self, boxLength)
 		distToClosestIP = float("inf")
 		closestIntersectingObstacle = None
 		localPosOfClosestObstacle = Vec2d(0, 0)
 		
 		for ob in obstacles:
+		
+			# optymalizacja: zastepuje tagObstaclesWithinViewRange, po co dwa razy iterowac po calej tablicy przeszkod? bez sensu
+			ob.tag = False
+			to = ob.position() - self.position()
+			range = boxLength + ob.r
+			if (ob != self) and (to.get_length_sqrd() < range * range):
+				ob.tag = True
+		
 			if ob.tag:
 				localPos = pointToLocalSpace(ob.position(), self.heading, self.side, self.position())
 				if localPos.x >= 0:
-					expandedRadius = ob.r + self.r
+					expandedRadius = ob.r + self.r + 5
 					if math.fabs(localPos.y) < expandedRadius:
 						cX = localPos.x
 						cY = localPos.y
 						sqrtPart = math.sqrt(expandedRadius * expandedRadius - cY * cY)
-						
-						# double ip = A - SqrtPart; ksiazka str w pdfie 125
-						# A = wtf?! cX?
-						
 						ip = cX - sqrtPart
+						
 						if ip <= 0:
 							ip = cX + sqrtPart
 							
@@ -318,7 +327,7 @@ class Enemy:
 		if closestIntersectingObstacle:
 			multiplier = 666.0 + (boxLength - localPosOfClosestObstacle.x) / boxLength
 			steeringForce.y = (closestIntersectingObstacle.r - localPosOfClosestObstacle.y) * multiplier
-			brakingWeight = 0.4
+			brakingWeight = 0.46
 			steeringForce.x = (closestIntersectingObstacle.r - localPosOfClosestObstacle.x) * brakingWeight
 			
 			steeringForce = vectorToWorldSpace(steeringForce, self.heading, self.side)
@@ -333,8 +342,8 @@ class Enemy:
 		
 	def update(self, player, obstacles, enemies, dt):
 		steeringForce = self.steering(player, obstacles, enemies, dt)
-		avoidForce = self.avoidance(player, obstacles, enemies, dt)
-		acceleration = (steeringForce - avoidForce) / 1.0 # wspolczynnik masy albo jakikolwiek skalujacy przyspieszenie
+		avoidForce = self.avoidance(obstacles + enemies)
+		acceleration = (steeringForce - avoidForce) #/ 1.0 # wspolczynnik masy albo jakikolwiek skalujacy przyspieszenie
 		self.velocity += acceleration * dt
 		self.velocity = truncate(self.velocity, self.maxSpeed)
 		self.heading = self.velocity.normalized()
