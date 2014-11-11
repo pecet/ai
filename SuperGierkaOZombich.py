@@ -577,7 +577,10 @@ def main():
 					
 				if event.key == pygame.K_r:
 					screen.fill((222,222,222)) 
-					reset(enemies[0].behavior) # restujemy pamietajac ustawiony behavior
+					if(len(enemies) > 0):
+						reset(enemies[0].behavior) # restujemy pamietajac ustawiony behavior
+					else:
+						reset()
 				elif event.key == pygame.K_1:
 					changeBehaviorOfAll(enemies, 'seek')
 					pygame.display.set_caption("SuperGierkaOZombich: seek")
