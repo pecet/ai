@@ -20,11 +20,12 @@ from vec2d import Vec2d
 # stale 
 WIDTH = 1024
 HEIGHT = 768
-MOVE_SPEED = 139
-ENEMY_SPEED = 90
+MOVE_SPEED = 144
+ENEMY_SPEED = 99
+BULLET_SPEED = 2222
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
-NUM_OBSTACLES = 10
-NUM_ENEMIES = 5
+NUM_OBSTACLES = 11
+NUM_ENEMIES = 8
 DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
 ENEMY_RADIUS = 13
 OBSTACLE_MIN_RADIUS = 20
@@ -33,7 +34,10 @@ OBSTACLE_MAX_RADIUS = 60
 # zmienne
 obstacles = []
 enemies = []
+bullets = []
 player = None
+clock = pygame.time.Clock()
+
 
 def circleCollision(x1, y1, r1, x2, y2, r2):
 	return (x1 - x2) ** 2 + (y1 - y2) ** 2 <= (r1 + r2) ** 2
@@ -333,7 +337,7 @@ class Enemy:
 	
 	# ---------------------------------
 		
-	def update(self, player, obstacles, enemies, dt):
+	def update(self, player, obstacles, bullets, enemies, dt):
 		steeringForce = self.steering(player, obstacles, enemies, dt)
 		avoidForce = self.avoidance(obstacles + enemies)
 		acceleration = (steeringForce - avoidForce) #/ 1.0 # wspolczynnik masy albo jakikolwiek skalujacy przyspieszenie
@@ -346,6 +350,7 @@ class Enemy:
 		self.x = newPosition.x
 		self.y = newPosition.y
 		
+		
 		# "zawijanie" wspolrzednych x oraz y
 		if WRAP_AROUND:
 			if self.x > WIDTH:
@@ -355,17 +360,82 @@ class Enemy:
 			if self.y > HEIGHT:
 				self.y = 0.0
 			elif self.y < 0.0:
-				self.y = HEIGHT			
+				self.y = HEIGHT
+				
+		#print str(player.time_elapsed_since_last_action)
+		
+		if player.vulnerable == False:
+			#print player.time_elapsed_since_last_action
+			player.time_elapsed_since_last_action += clock.tick()
+			if player.time_elapsed_since_last_action > 2000:
+				player.vulnerable = True
+				print player.vulnerable
+				print player.time_elapsed_since_last_action
+				return False
+			
+		if circleCollision(player.x, player.y, player.r, self.x, self.y, self.r): #kolizja przeciwnika z graczem - dodane tutaj, a nie w graczu bo w graczu nie dzialala w przypadku gdy gracz stal w miejscu
+			if player.vulnerable == True:
+				player.time_elapsed_since_last_action = 0
+				player.vulnerable = False
+				player.hp = player.hp - 10 #todo - poprawic hp i stworzyc wyswietlanie na ekranie
+				print 'HP = ' + str(player.hp)
+				print player.vulnerable
 
+		for bu in bullets: #kolizja z przeciwnikami
+			if circleCollision(bu.x, bu.y, bu.r, self.x, self.y, self.r):
+				enemies.remove(self)
+				break
+				
 	def __repr__(self):
 		return 'position=%s, velocity=%s, heading=%s' % (self.position(), self.velocity, self.heading)
+
+	
+class Bullet:
+
+	def __init__(self, player, mousex, mousey):
+		self.x = player.x
+		self.y = player.y
+		self.r = 3
+		self.velocity = Vec2d(mousex - player.x  , mousey - player.y)
+		self.heading = Vec2d(0, 0)
+		self.side = Vec2d(0, 0)
+		
+		self.speed = BULLET_SPEED
+		print self.velocity
+		
+	def draw(self, screen):
+		#print "I'm draw!"
+		pygame.draw.circle(screen, (255, 0, 0), (int(self.x), int(self.y)), self.r, 0) #kolor czerwony i mala predkosc tylko do testow
+	
+	def position(self):
+		return Vec2d(self.x, self.y)
+		
+	def update(self, player, obstacles, enemies, dt):
+		
+		self.velocity += dt
+		#self.velocity = truncate(self.velocity, self.speed)
+		self.heading = self.velocity.normalized()
+		self.speed = BULLET_SPEED
+		newPosition = Vec2d(self.x, self.y) + (self.heading*self.speed * dt)
+		self.x = newPosition.x
+		self.y = newPosition.y
+		
+		for ob in obstacles: #kolizja z przeszkodami (przez przeciwnikow ma chyba przenikac)
+			if circleCollision(ob.x, ob.y, ob.r, self.x, self.y, self.r):
+				bullets.remove(self)
+				print "collision"
+				break
+				
+
+		
+		
 		
 class Player():
 	def __init__(self, obstacles):
 	
 		# jw. ale tylko dla obstaclesow bo zombiaki na pewno nie beda 
 		# kolo playera (zapewnione przez powyzsze tworzenie enemiesow ktore jest POZNIEJ)
-	
+		
 		repeatRandom = True
 		while repeatRandom:
 			self.x = float(random.randrange(25, WIDTH - 25))
@@ -373,6 +443,9 @@ class Player():
 			self.r = 10
 			self.rot = 0
 			self.velocity = Vec2d(0, 0)
+			self.hp = 100
+			self.vulnerable = True #czy mozemy otrzymac obrazenia - po otrzymaniu obrazen ustawiane na false; chwilowa niesmiertelnosc
+			self.time_elapsed_since_last_action = 0 #odliczanie czasu od otrzymania obrazen
 			
 			repeatRandom = False
 			for ob in obstacles:
@@ -403,22 +476,27 @@ class Player():
 		triangle = pygame.Surface((18, 18))
 		triangle.fill((255, 255, 255))
 		triangle.set_colorkey((255, 255, 255))
-		pygame.draw.polygon(triangle, (255, 0, 0), ((0, 0), (18, 0), (9, 18)))
-
+		pygame.draw.polygon(triangle, (0, 191, 255), ((0, 0), (18, 0), (9, 18)))
+		pygame.draw.aaline(screen, (255, 150, 150), (player.x, player.y), pygame.mouse.get_pos(), 1)
+		
 		rtriangle = rotCenter(triangle, self.rot + 90) # + 90 bo rysuje od innego wierzcholka niz powinienem
 		screen.blit(rtriangle, (self.x - self.r / 1.6, self.y - self.r / 1.6)) # troche taka reczna koretka pozycji trojkata 
 		# bo trzeba by skalowac go jeslibysmy chcieli zeby sie dynamicznie zmienial od r a chyba nie o to chodzi) bo on raczej pokazuje tylko
 		# obrot gracza
+	
+	def shoot(self, x, y):
+		bullets.append(Bullet(self, x,y))
 		
 	def checkCollision(self, obstacles):
 		for ob in obstacles:
 			if circleCollision(ob.x, ob.y, ob.r, self.x, self.y, self.r):
 				return True
 				
+
 		return False
 
 def reset(behaviorForAll=None):
-	global player, obstacles, enemies
+	global player, obstacles, enemies, bullets
 
 	#inicjujemy zmienne
 	
@@ -439,7 +517,7 @@ def reset(behaviorForAll=None):
 		changeBehaviorOfAll(enemies, behaviorForAll)
 		
 def main():
-	global player, obstacles, enemies
+	global player, obstacles, enemies, bullets
 
 	pygame.init()
 	pygame.display.set_caption("SuperGierkaOZombich")
@@ -472,9 +550,12 @@ def main():
 			ob.draw(screen)
 			
 		for en in enemies:
-			en.update(player, obstacles, enemies, dt)
+			en.update(player, obstacles, bullets, enemies, dt)
 			en.draw(screen)
 			
+		for bu in bullets:
+			bu.update(player, obstacles, enemies, dt)
+			bu.draw(screen)
 		#print enemies[0]
 			
 		player.draw(screen)
@@ -536,6 +617,12 @@ def main():
 				degs = math.degrees(rads) % 360
 				#print 'Kat pomiedzy mysza a playerem:' + str(degs)
 				player.rot = degs
+				
+			elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+				print "shoot"
+				x, y = pygame.mouse.get_pos()
+				player.shoot(x,y)
+
 
 		# obslugujemy klawisze i proste kolizje
 		
@@ -566,6 +653,10 @@ def main():
 				player.x = prevX
 				player.y = prevY
 				
+		#	if player.checkCollision(enemies):
+		#		player.x = prevX
+		#		player.y = prevY
+		#		return False
 		# musimy to miec bo pursuit i evade uzywaja predkosci gracza
 		# do seek, arrive, flee niekoniecznie
 		player.velocity = Vec2d(player.x - prevX, player.y - prevY)	
