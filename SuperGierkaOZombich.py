@@ -189,7 +189,7 @@ class Enemy:
 		self.speed = 0
 		self.maxSpeed = ENEMY_SPEED
 		self.wanderTarget = Vec2d(WIDTH / 2, HEIGHT / 2)
-		self.changeBehavior('seek')
+		self.changeBehavior('hide')
 		self.tag = False
 		
 	def set(self, x, y, r):
@@ -213,6 +213,7 @@ class Enemy:
 		elif behavior == 'pursuit': self.steering = self.pursuit
 		elif behavior == 'evade': self.steering = self.evade
 		elif behavior == 'wander': self.steering = self.wander
+		elif behavior == 'hide': self.steering = self.hide		
 		else: raise Exception("changeBehavior: nieznana wartosc parametru behavior")
 		self.behavior = behavior
 		
@@ -285,6 +286,43 @@ class Enemy:
 		
 		return toReturn
 
+		
+	def getHidingPosition(self, obstacle, posTarget):
+		distanceFromBoundary = 35.0
+		distanceAway = distanceFromBoundary + obstacle.r
+		
+		toObstacle = obstacle.position() - posTarget
+		toObstacle = toObstacle.normalized()
+		return (toObstacle * distanceAway) + obstacle.position()
+		
+		
+	def hide(self, player, obstacles, enemies, dt):
+	
+		distToClosest = float("inf")
+		bestHidingSpot = None
+	
+		for ob in obstacles:
+			hidingSpot = self.getHidingPosition(ob, self.position())
+			dist = hidingSpot.get_dist_sqrd(self.position())
+			
+			if dist < distToClosest:
+				distToClosest = dist
+				bestHidingSpot = hidingSpot
+			
+		if distToClosest == float("inf"):
+			return self.evade(player, obstacles, enemies, dt)
+		else:
+			# ------------- arrive ---------------------
+			toTarget = bestHidingSpot - self.position()
+			dist = toTarget.get_length()
+		
+			if dist > 0:
+				speed = dist / 4.5 # <-- de-acceleration tweaker
+				#print speed
+				speed = min(speed, self.maxSpeed)
+				desiredVelocity = toTarget * (speed / dist)
+				return desiredVelocity - self.velocity
+	
 		
 	# ---------------------------------
 	def avoidance(self, obstacles):
