@@ -287,13 +287,17 @@ class Enemy:
 		return toReturn
 
 		
-	def getHidingPosition(self, obstacle, posTarget):
-		distanceFromBoundary = 35.0
+	def getHidingPosition(self, obstacle, posTarget, player):
+		distanceFromBoundary = 25.0
 		distanceAway = distanceFromBoundary + obstacle.r
 		
-		toObstacle = obstacle.position() - posTarget
+
+		
+		toObstacle = posTarget - obstacle.position()  # zmienilem kolejnosc i  dziala lepiej niz przedtem (!)
 		toObstacle = toObstacle.normalized()
+				
 		return (toObstacle * distanceAway) + obstacle.position()
+
 		
 		
 	def hide(self, player, obstacles, enemies, dt):
@@ -302,7 +306,7 @@ class Enemy:
 		bestHidingSpot = None
 	
 		for ob in obstacles:
-			hidingSpot = self.getHidingPosition(ob, self.position())
+			hidingSpot = self.getHidingPosition(ob, self.position(), player)
 			dist = hidingSpot.get_dist_sqrd(self.position())
 			
 			if dist < distToClosest:
@@ -312,17 +316,19 @@ class Enemy:
 		if distToClosest == float("inf"):
 			return self.evade(player, obstacles, enemies, dt)
 		else:
+			#print bestHidingSpot
 			# ------------- arrive ---------------------
 			toTarget = bestHidingSpot - self.position()
 			dist = toTarget.get_length()
 		
 			if dist > 0:
-				speed = dist / 4.5 # <-- de-acceleration tweaker
+				speed = dist / 2.0 # <-- de-acceleration tweaker
 				#print speed
 				speed = min(speed, self.maxSpeed)
 				desiredVelocity = toTarget * (speed / dist)
 				return desiredVelocity - self.velocity
 	
+		return Vec2d(0, 0)
 		
 	# ---------------------------------
 	def avoidance(self, obstacles):
@@ -369,7 +375,7 @@ class Enemy:
 			steeringForce.x = (closestIntersectingObstacle.r - localPosOfClosestObstacle.x) * brakingWeight
 			
 			steeringForce = vectorToWorldSpace(steeringForce, self.heading, self.side)
-				
+		
 		return steeringForce
 	
 	
@@ -637,7 +643,10 @@ def main():
 				elif event.key == pygame.K_6:
 					changeBehaviorOfAll(enemies, 'wander')		
 					pygame.display.set_caption("SuperGierkaOZombich: wander")
-										
+				elif event.key == pygame.K_7:
+					changeBehaviorOfAll(enemies, 'hide')		
+					pygame.display.set_caption("SuperGierkaOZombich: hide")
+																				
 					
 			elif event.type == pygame.KEYUP:
 				if event.key == pygame.K_w:
