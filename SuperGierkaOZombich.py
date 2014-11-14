@@ -25,7 +25,7 @@ ENEMY_SPEED = 99
 BULLET_SPEED = 2222
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
 NUM_OBSTACLES = 11
-NUM_ENEMIES = 8
+NUM_ENEMIES = 10
 DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
 ENEMY_RADIUS = 13
 OBSTACLE_MIN_RADIUS = 20
@@ -202,6 +202,7 @@ class Enemy:
 
 	def draw(self, screen):
 		pygame.draw.circle(screen, (0, 196, 0), (int(self.x), int(self.y)), self.r, 0)	
+		pygame.draw.line(screen, (255, 255, 0), (int(self.x), int(self.y)), (int(self.x + self.heading.x * 9), int(self.y + self.heading.y * 9)), 2)
 
 	def changeBehavior(self, behavior):
 		# self.steering to referencja do wlasciwej funkcji ktora obsluguje co sie ma dziac z enemiesami
@@ -295,6 +296,14 @@ class Enemy:
 		
 		toObstacle = posTarget - obstacle.position()  # zmienilem kolejnosc i  dziala lepiej niz przedtem (!)
 		toObstacle = toObstacle.normalized()
+		
+		angle = toObstacle.get_angle()
+		angleBetween = toObstacle.get_angle_between(player.heading())
+		dot = toObstacle.dot(player.heading())
+
+		#if math.fabs(angleBetween) > 5.0:
+		#		toObstacle.rotate(angleBetween)
+		#	toObstacle.normalized()
 				
 		return (toObstacle * distanceAway) + obstacle.position()
 
