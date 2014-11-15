@@ -24,8 +24,8 @@ MOVE_SPEED = 144
 ENEMY_SPEED = 99
 BULLET_SPEED = 2222
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
-NUM_OBSTACLES = 11
-NUM_ENEMIES = 10
+NUM_OBSTACLES = 1
+NUM_ENEMIES = 1
 DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
 ENEMY_RADIUS = 13
 OBSTACLE_MIN_RADIUS = 20
@@ -289,7 +289,7 @@ class Enemy:
 
 		
 	def getHidingPosition(self, obstacle, posTarget, player):
-		distanceFromBoundary = 25.0
+		distanceFromBoundary = 35.0
 		distanceAway = distanceFromBoundary + obstacle.r
 		
 
@@ -297,14 +297,16 @@ class Enemy:
 		toObstacle = posTarget - obstacle.position()  # zmienilem kolejnosc i  dziala lepiej niz przedtem (!)
 		toObstacle = toObstacle.normalized()
 		
-		angle = toObstacle.get_angle()
-		angleBetween = toObstacle.get_angle_between(player.heading())
-		dot = toObstacle.dot(player.heading())
+		toPlayer = player.position() - obstacle.position()
+		toPlayer = toPlayer.normalized()
+		
+		diff = toPlayer.get_angle() - toObstacle.get_angle()
 
-		#if math.fabs(angleBetween) > 5.0:
-		#		toObstacle.rotate(angleBetween)
-		#	toObstacle.normalized()
-				
+
+		if math.fabs(diff) < 160.0:
+			toObstacle.rotate(45) # obracamy wektor kierunku dzieki czemu nasza postac sie nie zatrzyma tylko ukryje
+			toObstacle = toObstacle.normalized()
+					
 		return (toObstacle * distanceAway) + obstacle.position()
 
 		
