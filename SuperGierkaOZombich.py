@@ -20,15 +20,15 @@ from vec2d import Vec2d
 # stale 
 WIDTH = 1024
 HEIGHT = 768
-MOVE_SPEED = 144
-ENEMY_SPEED = 99
+MOVE_SPEED = 125
+ENEMY_SPEED = 95
 BULLET_SPEED = 2222
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
-NUM_OBSTACLES = 5
-NUM_ENEMIES = 1
+NUM_OBSTACLES = 10
+NUM_ENEMIES = 6
 DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
 ENEMY_RADIUS = 13
-OBSTACLE_MIN_RADIUS = 20
+OBSTACLE_MIN_RADIUS = 28
 OBSTACLE_MAX_RADIUS = 60
 
 # zmienne
@@ -292,15 +292,16 @@ class Enemy:
 		distanceFromBoundary = 35.0
 		distanceAway = distanceFromBoundary + obstacle.r
 		
-
-		
-		toObstacle = posTarget - obstacle.position()  # zmienilem kolejnosc i  dziala lepiej niz przedtem (!)
+		toObstacle = posTarget - obstacle.position()  
 		toObstacle = toObstacle.normalized()
 		
 		toPlayer = player.position() - obstacle.position()
 		toPlayer = toPlayer.normalized()
+		angle = toPlayer.get_angle()
 		
-		diff = toPlayer.get_angle() - toObstacle.get_angle()
+		
+		# obracamy naszego enemiesa wzg. obstacla tak aby zawsze byl za przeszkoda :)
+		toObstacle.angle = angle + 180
 					
 		return (toObstacle * distanceAway) + obstacle.position()
 
@@ -308,7 +309,7 @@ class Enemy:
 		
 	def hide(self, player, obstacles, enemies, dt):
 	
-		global bestHidingSpot #debug
+		#global bestHidingSpot #debug
 	
 		distToClosest = float("inf")
 		bestHidingSpot = None
@@ -316,10 +317,6 @@ class Enemy:
 		for ob in obstacles:
 			hidingSpot = self.getHidingPosition(ob, self.position(), player)
 			dist = hidingSpot.get_dist_sqrd(self.position())
-			
-			# It might be desirable to produce a force that steers a vehicle so that it always favors hiding positions that are to the side or rear of the pursuer. This can be achieved easily using your friend the dot product to bias the distances returned from GetHidingPosition.
-			
-			dist 
 			
 			if dist < distToClosest:
 				distToClosest = dist
@@ -334,7 +331,7 @@ class Enemy:
 			dist = toTarget.get_length()
 		
 			if dist > 0:
-				speed = dist / 2.0 # <-- de-acceleration tweaker
+				speed = dist / 1.5151515 # <-- de-acceleration tweaker
 				#print speed
 				speed = min(speed, self.maxSpeed)
 				desiredVelocity = toTarget * (speed / dist)
@@ -616,7 +613,7 @@ def main():
 			
 		player.draw(screen)
 		
-		pygame.draw.circle(screen, (255, 255, 0), (int(bestHidingSpot.x), int(bestHidingSpot.y)), 3, 0) #debug
+		#pygame.draw.circle(screen, (255, 255, 0), (int(bestHidingSpot.x), int(bestHidingSpot.y)), 3, 0) #debug
 		
 			
 		pygame.display.flip()
