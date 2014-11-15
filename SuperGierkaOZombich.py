@@ -24,7 +24,7 @@ MOVE_SPEED = 144
 ENEMY_SPEED = 99
 BULLET_SPEED = 2222
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
-NUM_OBSTACLES = 1
+NUM_OBSTACLES = 5
 NUM_ENEMIES = 1
 DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
 ENEMY_RADIUS = 13
@@ -301,11 +301,6 @@ class Enemy:
 		toPlayer = toPlayer.normalized()
 		
 		diff = toPlayer.get_angle() - toObstacle.get_angle()
-
-
-		if math.fabs(diff) < 160.0:
-			toObstacle.rotate(45) # obracamy wektor kierunku dzieki czemu nasza postac sie nie zatrzyma tylko ukryje
-			toObstacle = toObstacle.normalized()
 					
 		return (toObstacle * distanceAway) + obstacle.position()
 
@@ -313,12 +308,18 @@ class Enemy:
 		
 	def hide(self, player, obstacles, enemies, dt):
 	
+		global bestHidingSpot #debug
+	
 		distToClosest = float("inf")
 		bestHidingSpot = None
 	
 		for ob in obstacles:
 			hidingSpot = self.getHidingPosition(ob, self.position(), player)
 			dist = hidingSpot.get_dist_sqrd(self.position())
+			
+			# It might be desirable to produce a force that steers a vehicle so that it always favors hiding positions that are to the side or rear of the pursuer. This can be achieved easily using your friend the dot product to bias the distances returned from GetHidingPosition.
+			
+			dist 
 			
 			if dist < distToClosest:
 				distToClosest = dist
@@ -614,6 +615,9 @@ def main():
 		#print enemies[0]
 			
 		player.draw(screen)
+		
+		pygame.draw.circle(screen, (255, 255, 0), (int(bestHidingSpot.x), int(bestHidingSpot.y)), 3, 0) #debug
+		
 			
 		pygame.display.flip()
 		for event in pygame.event.get():
