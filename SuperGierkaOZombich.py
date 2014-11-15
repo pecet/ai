@@ -392,8 +392,9 @@ class Enemy:
 		
 	def update(self, player, obstacles, bullets, enemies, dt):
 		steeringForce = self.steering(player, obstacles, enemies, dt)
-		avoidForce = self.avoidance(obstacles + enemies)
-		acceleration = (steeringForce - avoidForce) #/ 1.0 # wspolczynnik masy albo jakikolwiek skalujacy przyspieszenie
+		avoidForce = self.avoidance(obstacles)
+		avoidForce2 = self.avoidance(enemies) / 8.0
+		acceleration = (steeringForce - avoidForce - avoidForce2) #/ 1.0 # wspolczynnik masy albo jakikolwiek skalujacy przyspieszenie
 		self.velocity += acceleration * dt
 		self.velocity = truncate(self.velocity, self.maxSpeed)
 		self.heading = self.velocity.normalized()
