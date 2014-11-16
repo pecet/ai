@@ -20,16 +20,17 @@ from vec2d import Vec2d
 # stale 
 WIDTH = 1024
 HEIGHT = 768
-MOVE_SPEED = 125
-ENEMY_SPEED = 95
+MOVE_SPEED = 122
+ENEMY_SPEED = 99
 BULLET_SPEED = 2222
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
 NUM_OBSTACLES = 10
-NUM_ENEMIES = 6
+NUM_ENEMIES = 10
 DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
 ENEMY_RADIUS = 13
 OBSTACLE_MIN_RADIUS = 28
 OBSTACLE_MAX_RADIUS = 60
+GROUP_RADIUS = 35
 
 # zmienne
 obstacles = []
@@ -191,17 +192,21 @@ class Enemy:
 		self.wanderTarget = Vec2d(WIDTH / 2, HEIGHT / 2)
 		self.changeBehavior('hide')
 		self.tag = False
+		self.colour = (0, 196, 0)
+		self.neighbors = []
 		
 	def set(self, x, y, r):
 		self.x = x
 		self.y = y
 		self.r = r
-
+		
+		
 	def position(self):
 		return Vec2d(self.x, self.y)
 
 	def draw(self, screen):
-		pygame.draw.circle(screen, (0, 196, 0), (int(self.x), int(self.y)), self.r, 0)	
+		pygame.draw.circle(screen, self.colour, (int(self.x), int(self.y)), self.r, 0)	
+		pygame.draw.circle(screen, (255, 255, 0), (int(self.x), int(self.y)), GROUP_RADIUS, 1)	
 		pygame.draw.line(screen, (255, 255, 0), (int(self.x), int(self.y)), (int(self.x + self.heading.x * 9), int(self.y + self.heading.y * 9)), 2)
 
 	def changeBehavior(self, behavior):
@@ -423,8 +428,8 @@ class Enemy:
 			player.time_elapsed_since_last_action += clock.tick()
 			if player.time_elapsed_since_last_action > 2000:
 				player.vulnerable = True
-				print player.vulnerable
-				print player.time_elapsed_since_last_action
+				#print player.vulnerable
+				#print player.time_elapsed_since_last_action
 				return False
 			
 		if circleCollision(player.x, player.y, player.r, self.x, self.y, self.r): #kolizja przeciwnika z graczem - dodane tutaj, a nie w graczu bo w graczu nie dzialala w przypadku gdy gracz stal w miejscu
@@ -433,13 +438,24 @@ class Enemy:
 				player.vulnerable = False
 				player.hp = player.hp - 10 #todo - poprawic hp i stworzyc wyswietlanie na ekranie
 				print 'HP = ' + str(player.hp)
-				print player.vulnerable
+				#print player.vulnerable
 
 		for bu in bullets: #kolizja z przeciwnikami
 			if circleCollision(bu.x, bu.y, bu.r, self.x, self.y, self.r):
 				enemies.remove(self)
 				break
-				
+		
+		for en in enemies: #tworzenie grup
+			if (self != en):
+				if circleCollision(en.x, en.y, en.r, self.x, self.y, self.r+GROUP_RADIUS):
+					if en not in self.neighbors:
+						self.neighbors.append(en)
+						print (len(self.neighbors))
+						self.colour = (127,255,0)
+						if (len(self.neighbors)>1):
+							changeBehaviorOfAll(self.neighbors, 'pursuit')
+						break
+		
 	def __repr__(self):
 		return 'position=%s, velocity=%s, heading=%s' % (self.position(), self.velocity, self.heading)
 
