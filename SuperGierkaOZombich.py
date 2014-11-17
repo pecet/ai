@@ -466,10 +466,11 @@ class Enemy:
 			self.randomTimer = 0.0
 			r = random.randrange(0, 10) # mamy 10% szans na zmiane
 			if r == 0: 
-				print 'randomowa zmiana behaviora'
 				if self.behavior == "hide":
+					print 'randomowa zmiana behaviora hide -> wander'
 					self.changeBehavior("wander")
 				elif self.behavior == "wander":
+					print 'randomowa zmiana behaviora wander -> hide'
 					self.changeBehavior("hide")
 		
 		
