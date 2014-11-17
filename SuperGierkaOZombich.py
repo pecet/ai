@@ -24,8 +24,8 @@ MOVE_SPEED = 122
 ENEMY_SPEED = 99
 BULLET_SPEED = 2222
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
-NUM_OBSTACLES = 10
-NUM_ENEMIES = 10
+NUM_OBSTACLES = 12
+NUM_ENEMIES = 20
 DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
 ENEMY_RADIUS = 13
 OBSTACLE_MIN_RADIUS = 28
@@ -183,7 +183,7 @@ class Enemy:
 			if circleCollision(player.x, player.y, player.r + 100, self.x, self.y, self.r):
 				repeatRandom = True
 
-		
+		self.randomTimer = 0 # patrz metoda update
 		self.velocity = Vec2d(0, 0)
 		self.heading = Vec2d(0, 0)
 		self.side = Vec2d(0, 0)
@@ -455,6 +455,23 @@ class Enemy:
 						if (len(self.neighbors)>1):
 							changeBehaviorOfAll(self.neighbors, 'pursuit')
 						break
+						
+		# ---------------------------------------
+		# losowo musimy zmieniac behavior na wander z hide
+		# zeby przeciwnicy od czasu do czasu wychodzili z zza przeszkod (latwiejsze robienie grup etc.)
+		# zwlaszcza gdy sa ta przeciwnicy odizolowani od innych 
+		self.randomTimer += dt # licznik odmierzajacy czas do nastepnej zmiany 
+		
+		if self.randomTimer >= 3.0: # co ok. 3 sekundy sprawdzamy oraz
+			self.randomTimer = 0.0
+			r = random.randrange(0, 10) # mamy 10% szans na zmiane
+			if r == 0: 
+				print 'randomowa zmiana behaviora'
+				if self.behavior == "hide":
+					self.changeBehavior("wander")
+				elif self.behavior == "wander":
+					self.changeBehavior("hide")
+		
 		
 	def __repr__(self):
 		return 'position=%s, velocity=%s, heading=%s' % (self.position(), self.velocity, self.heading)
@@ -604,7 +621,7 @@ def main():
 	up = False
 	down = False
 	
-	reset()
+	reset("hide")
 	
 	clock = pygame.time.Clock()
 	screen.fill((222,222,222)) 
@@ -650,10 +667,10 @@ def main():
 					
 				if event.key == pygame.K_r:
 					screen.fill((222,222,222)) 
-					if(len(enemies) > 0):
-						reset(enemies[0].behavior) # restujemy pamietajac ustawiony behavior
-					else:
-						reset()
+				#	if(len(enemies) > 0):
+				#		reset(enemies[0].behavior) # restujemy pamietajac ustawiony behavior
+				#	else:
+					reset("hide")
 				elif event.key == pygame.K_1:
 					changeBehaviorOfAll(enemies, 'seek')
 					pygame.display.set_caption("SuperGierkaOZombich: seek")
