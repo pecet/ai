@@ -25,12 +25,12 @@ ENEMY_SPEED = 99
 BULLET_SPEED = 2222
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
 NUM_OBSTACLES = 12
-NUM_ENEMIES = 20
+NUM_ENEMIES = 7
 DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
 ENEMY_RADIUS = 13
 OBSTACLE_MIN_RADIUS = 28
 OBSTACLE_MAX_RADIUS = 60
-GROUP_RADIUS = 35
+GROUP_RADIUS = 45
 
 # zmienne
 obstacles = []
@@ -270,7 +270,7 @@ class Enemy:
 		return desiredVelocity - self.velocity
 
 	
-	def wander(self, player, obstacles, enemies, dt): 
+	def wander(self, player, obstacles, enemies, dt): #todo - poprawic zeby chodzac nie zblizali sie do gracza za bardzo - maja chodzic i sie chowac
 		# ja tak te parametry rozumiem (+ sprawdzone doswiadczalnie przez ich zmiane)
 		wanderRadius = 200 # promien kola po ktorym poruszamy sie (im wiecej tym mniejszy) / jak bardzo skrecamy 0 = linia prosta
 		wanderDistance = 40 # odleglosc od srodka kola / podobienstwo do idealnego kola
@@ -399,7 +399,11 @@ class Enemy:
 		steeringForce = self.steering(player, obstacles, enemies, dt)
 		avoidForce = self.avoidance(obstacles)
 		avoidForce2 = self.avoidance(enemies) / 8.0
-		acceleration = (steeringForce - avoidForce - avoidForce2) #/ 1.0 # wspolczynnik masy albo jakikolwiek skalujacy przyspieszenie
+		if self.behavior != 'pursuit':
+			avoidForce3 = self.avoidance([player]) / 1.0
+		else:
+			avoidForce3 = Vec2d(0, 0)
+		acceleration = (steeringForce - avoidForce - avoidForce2 - avoidForce3) #/ 1.0 # wspolczynnik masy albo jakikolwiek skalujacy przyspieszenie
 		self.velocity += acceleration * dt
 		self.velocity = truncate(self.velocity, self.maxSpeed)
 		self.heading = self.velocity.normalized()
@@ -438,6 +442,8 @@ class Enemy:
 				player.vulnerable = False
 				player.hp = player.hp - 10 #todo - poprawic hp i stworzyc wyswietlanie na ekranie
 				print 'HP = ' + str(player.hp)
+				
+				
 				#print player.vulnerable
 
 		for bu in bullets: #kolizja z przeciwnikami
@@ -445,26 +451,52 @@ class Enemy:
 				enemies.remove(self)
 				break
 		
-		for en in enemies: #tworzenie grup
+		'''for en in enemies: #tworzenie grup
 			if (self != en):
+				#print (len(enemies))
 				if circleCollision(en.x, en.y, en.r, self.x, self.y, self.r+GROUP_RADIUS):
 					if en not in self.neighbors:
 						self.neighbors.append(en)
 						print (len(self.neighbors))
-						self.colour = (127,255,0)
-						if (len(self.neighbors)>1):
-							changeBehaviorOfAll(self.neighbors, 'pursuit')
-						break
+				elif (len(self.neighbors)>1):
+					for ne in self.neighbors:
+						ne.colour = (127,255,0)
+					changeBehaviorOfAll(self.neighbors, 'pursuit')
+					break
+				elif (len(enemies)<3):
+					self.neighbors.append(en)'''
+					
+		for en in enemies:
+			if(self != en):
+				if circleCollision(en.x, en.y, en.r, self.x, self.y, self.r+GROUP_RADIUS):
+					if en not in self.neighbors:
+						self.neighbors.append(en)
+				else:
+					if en in self.neighbors:
+						self.neighbors.remove(en)
 						
+						
+		if len(self.neighbors) > 1:
+			for ne in self.neighbors:
+				ne.colour = (127,255,0)
+			self.colour =(127,255,0)
+			changeBehaviorOfAll(self.neighbors, 'pursuit')
+					
+
+		print (len(self.neighbors))
+		
+		if (len(enemies)<3):
+			self.colour = (127, 255,0)
+			self.changeBehavior('pursuit')
 		# ---------------------------------------
 		# losowo musimy zmieniac behavior na wander z hide
 		# zeby przeciwnicy od czasu do czasu wychodzili z zza przeszkod (latwiejsze robienie grup etc.)
 		# zwlaszcza gdy sa ta przeciwnicy odizolowani od innych 
 		self.randomTimer += dt # licznik odmierzajacy czas do nastepnej zmiany 
 		
-		if self.randomTimer >= 3.0: # co ok. 3 sekundy sprawdzamy oraz
+		if self.randomTimer >= 4.0: # co ok. 4 sekundy sprawdzamy oraz
 			self.randomTimer = 0.0
-			r = random.randrange(0, 10) # mamy 10% szans na zmiane
+			r = random.randrange(0, 4) # mamy 25% szans na zmiane
 			if r == 0: 
 				if self.behavior == "hide":
 					print 'randomowa zmiana behaviora hide -> wander'
@@ -541,6 +573,10 @@ class Player():
 					repeatRandom = True
 					break
 					
+					
+		
+		self.font = pygame.font.SysFont("monospace", 21)
+		
 	def set(self, x, y, rot):
 		self.x = x
 		self.y = y
@@ -566,6 +602,8 @@ class Player():
 		triangle.set_colorkey((255, 255, 255))
 		pygame.draw.polygon(triangle, (0, 191, 255), ((0, 0), (18, 0), (9, 18)))
 		pygame.draw.aaline(screen, (255, 150, 150), (player.x, player.y), pygame.mouse.get_pos(), 1)
+		txt = self.font.render("HP:" + str(self.hp), 1, (0,0,0))
+		screen.blit(txt, (0, 0))
 		
 		rtriangle = rotCenter(triangle, self.rot + 90) # + 90 bo rysuje od innego wierzcholka niz powinienem
 		screen.blit(rtriangle, (self.x - self.r / 1.6, self.y - self.r / 1.6)) # troche taka reczna koretka pozycji trojkata 
