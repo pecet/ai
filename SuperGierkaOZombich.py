@@ -604,6 +604,8 @@ class Player():
 		pygame.draw.aaline(screen, (255, 150, 150), (player.x, player.y), pygame.mouse.get_pos(), 1)
 		txt = self.font.render("HP:" + str(self.hp), 1, (0,0,0))
 		screen.blit(txt, (0, 0))
+		txt = self.font.render("HP:" + str(self.hp), 1, (255,255,255))
+		screen.blit(txt, (1, 1))
 		
 		rtriangle = rotCenter(triangle, self.rot + 90) # + 90 bo rysuje od innego wierzcholka niz powinienem
 		screen.blit(rtriangle, (self.x - self.r / 1.6, self.y - self.r / 1.6)) # troche taka reczna koretka pozycji trojkata 
