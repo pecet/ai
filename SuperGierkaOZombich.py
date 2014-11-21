@@ -28,7 +28,7 @@ NUM_OBSTACLES = 10
 NUM_ENEMIES = 15
 DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
 ENEMY_RADIUS = 13
-OBSTACLE_MIN_RADIUS = 35
+OBSTACLE_MIN_RADIUS = 30
 OBSTACLE_MAX_RADIUS = 90
 GROUP_RADIUS = 45
 
@@ -143,11 +143,21 @@ def tagObstaclesWithinViewRange(obstacles, enemy, radius):
 	return counter # tylko dla testu w sumie
 		
 class Obstacle:
-	def __init__(self):
-		self.x = random.randrange(0, WIDTH)
-		self.y = random.randrange(0, HEIGHT)
-		self.r = random.randrange(OBSTACLE_MIN_RADIUS, OBSTACLE_MAX_RADIUS)
-		self.tag = False
+	def __init__(self, obstacles):
+		repeatRandom = True
+		
+		while repeatRandom:		
+			repeatRandom = False		
+					
+			self.x = random.randrange(0, WIDTH)
+			self.y = random.randrange(0, HEIGHT)
+			self.r = random.randrange(OBSTACLE_MIN_RADIUS, OBSTACLE_MAX_RADIUS)
+			self.tag = False
+			
+			for ob in obstacles:
+				if circleCollision(ob.x, ob.y, ob.r, self.x, self.y, self.r + 5):
+					repeatRandom = True			
+			
 	def set(self, x, y, r):
 		self.x = x
 		self.y = y
@@ -616,7 +626,7 @@ def reset(behaviorForAll=None):
 	# sciany 
 	obstacles = []
 	for i in xrange(0, NUM_OBSTACLES):
-		obstacles.append(Obstacle())
+		obstacles.append(Obstacle(obstacles))
 		
 	# player
 	player = Player(obstacles)
