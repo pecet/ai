@@ -155,7 +155,7 @@ class Obstacle:
 			self.tag = False
 			
 			for ob in obstacles:
-				if circleCollision(ob.x, ob.y, ob.r, self.x, self.y, self.r + 5):
+				if circleCollision(ob.x, ob.y, ob.r, self.x, self.y, self.r + 25):
 					repeatRandom = True			
 			
 	def set(self, x, y, r):
@@ -590,6 +590,9 @@ class Player():
 		
 	def draw(self, screen):
 		
+		if self.hp <= 0:
+			self.hp = 0
+		
 		#bouding circle
 		pygame.draw.circle(screen, (255, 235, 235), (int(self.x), int(self.y)), self.r, 0)
 		
@@ -661,6 +664,7 @@ def main():
 	
 	clock = pygame.time.Clock()
 	screen.fill((222,222,222)) 
+	font = pygame.font.SysFont("monospace", 60)
 	
 	while True: # glowna petla
 		dt = clock.tick(60) / 1000.0 # 60 fps max
@@ -680,10 +684,14 @@ def main():
 			bu.update(player, obstacles, enemies, dt)
 			bu.draw(screen)
 		#print enemies[0]
-			
-		player.draw(screen)
-		
-		#pygame.draw.circle(screen, (255, 255, 0), (int(bestHidingSpot.x), int(bestHidingSpot.y)), 3, 0) #debug
+
+		if player.hp > 0:
+			player.draw(screen)
+		else:
+			txt = font.render("YOU JUST LOST THE GAME", 1, (255,0,0))
+			screen.blit(txt, (0, HEIGHT / 2))
+			txt = font.render("press R to restart", 1, (255,111,0))
+			screen.blit(txt, (0, HEIGHT / 2 + 70))
 		
 			
 		pygame.display.flip()
@@ -740,7 +748,7 @@ def main():
 				elif event.key == pygame.K_d:
 					right = False		
 					
-			elif event.type == pygame.MOUSEMOTION:
+			elif event.type == pygame.MOUSEMOTION and player.hp > 0:
 				# https://stackoverflow.com/questions/10473930/how-do-i-find-the-angle-between-2-points-in-pygame
 				mx, my = pygame.mouse.get_pos()
 				dx = mx - player.x
@@ -750,7 +758,7 @@ def main():
 				#print 'Kat pomiedzy mysza a playerem:' + str(degs)
 				player.rot = degs
 				
-			elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+			elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and player.hp > 0:
 				print "shoot"
 				x, y = pygame.mouse.get_pos()
 				player.shoot(x,y)
@@ -761,14 +769,15 @@ def main():
 		prevX = player.x
 		prevY = player.y
 
-		if left:
-			player.x -= MOVE_SPEED * dt
-		elif right:
-			player.x += MOVE_SPEED * dt
-		if up:
-			player.y -= MOVE_SPEED * dt
-		elif down: 
-			player.y += MOVE_SPEED * dt
+		if player.hp > 0:
+			if left:
+				player.x -= MOVE_SPEED * dt
+			elif right:
+				player.x += MOVE_SPEED * dt
+			if up:
+				player.y -= MOVE_SPEED * dt
+			elif down: 
+				player.y += MOVE_SPEED * dt
 				
 		if left or right or up or down:
 			if WRAP_AROUND:
