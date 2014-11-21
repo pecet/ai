@@ -20,16 +20,16 @@ from vec2d import Vec2d
 # stale 
 WIDTH = 1024
 HEIGHT = 768
-MOVE_SPEED = 122
-ENEMY_SPEED = 99
+MOVE_SPEED = 75
+ENEMY_SPEED = 105
 BULLET_SPEED = 2222
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
-NUM_OBSTACLES = 12
-NUM_ENEMIES = 7
+NUM_OBSTACLES = 10
+NUM_ENEMIES = 15
 DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
 ENEMY_RADIUS = 13
-OBSTACLE_MIN_RADIUS = 28
-OBSTACLE_MAX_RADIUS = 60
+OBSTACLE_MIN_RADIUS = 35
+OBSTACLE_MAX_RADIUS = 90
 GROUP_RADIUS = 45
 
 # zmienne
@@ -206,7 +206,7 @@ class Enemy:
 
 	def draw(self, screen):
 		pygame.draw.circle(screen, self.colour, (int(self.x), int(self.y)), self.r, 0)	
-		pygame.draw.circle(screen, (255, 255, 0), (int(self.x), int(self.y)), GROUP_RADIUS, 1)	
+		#pygame.draw.circle(screen, (255, 255, 0), (int(self.x), int(self.y)), GROUP_RADIUS, 1)	
 		pygame.draw.line(screen, (255, 255, 0), (int(self.x), int(self.y)), (int(self.x + self.heading.x * 9), int(self.y + self.heading.y * 9)), 2)
 
 	def changeBehavior(self, behavior):
@@ -440,8 +440,8 @@ class Enemy:
 			if player.vulnerable == True:
 				player.time_elapsed_since_last_action = 0
 				player.vulnerable = False
-				player.hp = player.hp - 10 #todo - poprawic hp i stworzyc wyswietlanie na ekranie
-				print 'HP = ' + str(player.hp)
+				player.hp = player.hp - 25 #todo - poprawic hp i stworzyc wyswietlanie na ekranie
+				#print 'HP = ' + str(player.hp)
 				
 				
 				#print player.vulnerable
@@ -450,21 +450,6 @@ class Enemy:
 			if circleCollision(bu.x, bu.y, bu.r, self.x, self.y, self.r):
 				enemies.remove(self)
 				break
-		
-		'''for en in enemies: #tworzenie grup
-			if (self != en):
-				#print (len(enemies))
-				if circleCollision(en.x, en.y, en.r, self.x, self.y, self.r+GROUP_RADIUS):
-					if en not in self.neighbors:
-						self.neighbors.append(en)
-						print (len(self.neighbors))
-				elif (len(self.neighbors)>1):
-					for ne in self.neighbors:
-						ne.colour = (127,255,0)
-					changeBehaviorOfAll(self.neighbors, 'pursuit')
-					break
-				elif (len(enemies)<3):
-					self.neighbors.append(en)'''
 					
 		for en in enemies:
 			if(self != en):
@@ -481,9 +466,6 @@ class Enemy:
 				ne.colour = (127,255,0)
 			self.colour =(127,255,0)
 			changeBehaviorOfAll(self.neighbors, 'pursuit')
-					
-
-		print (len(self.neighbors))
 		
 		if (len(enemies)<3):
 			self.colour = (127, 255,0)
@@ -499,12 +481,17 @@ class Enemy:
 			r = random.randrange(0, 4) # mamy 25% szans na zmiane
 			if r == 0: 
 				if self.behavior == "hide":
-					print 'randomowa zmiana behaviora hide -> wander'
-					self.changeBehavior("wander")
+					if not circleCollision(self.x, self.y, self.r, player.x, player.y, player.r + 155):
+						#print 'randomowa zmiana behaviora hide -> wander'
+						self.changeBehavior("wander")
 				elif self.behavior == "wander":
-					print 'randomowa zmiana behaviora wander -> hide'
+					#print 'randomowa zmiana behaviora wander -> hide'
 					self.changeBehavior("hide")
+
 		
+		if self.behavior == "wander" and circleCollision(self.x, self.y, self.r, player.x, player.y, player.r + 155):
+			#print 'zbyt blisko gracz -> hide'
+			self.changeBehavior("hide")
 		
 	def __repr__(self):
 		return 'position=%s, velocity=%s, heading=%s' % (self.position(), self.velocity, self.heading)
