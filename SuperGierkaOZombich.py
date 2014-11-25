@@ -280,7 +280,7 @@ class Enemy:
 		return desiredVelocity - self.velocity
 
 	
-	def wander(self, player, obstacles, enemies, dt): #todo - poprawic zeby chodzac nie zblizali sie do gracza za bardzo - maja chodzic i sie chowac
+	def wander(self, player, obstacles, enemies, dt): 
 		# ja tak te parametry rozumiem (+ sprawdzone doswiadczalnie przez ich zmiane)
 		wanderRadius = 200 # promien kola po ktorym poruszamy sie (im wiecej tym mniejszy) / jak bardzo skrecamy 0 = linia prosta
 		wanderDistance = 40 # odleglosc od srodka kola / podobienstwo do idealnego kola
@@ -410,7 +410,7 @@ class Enemy:
 		avoidForce = self.avoidance(obstacles)
 		avoidForce2 = self.avoidance(enemies) / 8.0
 		if self.behavior != 'pursuit':
-			avoidForce3 = self.avoidance([player]) / 1.0
+			avoidForce3 = self.avoidance([player]) / 15.0
 		else:
 			avoidForce3 = Vec2d(0, 0)
 		acceleration = (steeringForce - avoidForce - avoidForce2 - avoidForce3) #/ 1.0 # wspolczynnik masy albo jakikolwiek skalujacy przyspieszenie
@@ -450,7 +450,7 @@ class Enemy:
 			if player.vulnerable == True:
 				player.time_elapsed_since_last_action = 0
 				player.vulnerable = False
-				player.hp = player.hp - 25 #todo - poprawic hp i stworzyc wyswietlanie na ekranie
+				player.hp = player.hp - 25 
 				#print 'HP = ' + str(player.hp)
 				
 				
