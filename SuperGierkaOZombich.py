@@ -782,6 +782,7 @@ def main():
 				# a ruch na skos to ruch o sqrt(2), a skoro skladamy z dwoch to 
 				# kazdy kierunek sie przesuwa o sqrt(2)/2
 				# mozna sobie zakomentowac dwie powyzsze linie i zobaczyc doswiadczalnie ze faktycznie tak jest
+				# lub moze proscej moze nie,  wektor (1,1) po normalizacji to (sqrt(2)/2, sqrt(2)/2)
 				
 			if left:
 				player.x -= moveSpeed * dt
