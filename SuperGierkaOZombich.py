@@ -773,14 +773,24 @@ def main():
 		prevY = player.y
 
 		if player.hp > 0:
+			moveSpeed = MOVE_SPEED
+			if (left and up) or (left and down) or (right and down) or (right and up):
+				#jesli trzymamy DWA klawisze (czyli ruch na skosy)
+				moveSpeed = MOVE_SPEED * (math.sqrt(2) / 2)
+				# dlaczego movespeed musi byc mniejszy? bo normalnie bylby wiekszy
+				# bo bysmy sie ruszali i np. na lewo i do gory o tyle samo
+				# a ruch na skos to ruch o sqrt(2), a skoro skladamy z dwoch to 
+				# kazdy kierunek sie przesuwa o sqrt(2)/2
+				# mozna sobie zakomentowac dwie powyzsze linie i zobaczyc doswiadczalnie ze faktycznie tak jest
+				
 			if left:
-				player.x -= MOVE_SPEED * dt
+				player.x -= moveSpeed * dt
 			elif right:
-				player.x += MOVE_SPEED * dt
+				player.x += moveSpeed * dt
 			if up:
-				player.y -= MOVE_SPEED * dt
+				player.y -= moveSpeed * dt
 			elif down: 
-				player.y += MOVE_SPEED * dt
+				player.y += moveSpeed * dt
 				
 		if left or right or up or down:
 			if WRAP_AROUND:
