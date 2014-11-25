@@ -491,7 +491,7 @@ class Enemy:
 			r = random.randrange(0, 4) # mamy 25% szans na zmiane
 			if r == 0: 
 				if self.behavior == "hide":
-					if not circleCollision(self.x, self.y, self.r, player.x, player.y, player.r + 155):
+					if not circleCollision(self.x, self.y, self.r, player.x, player.y, player.r + 275):
 						#print 'randomowa zmiana behaviora hide -> wander'
 						self.changeBehavior("wander")
 				elif self.behavior == "wander":
@@ -499,7 +499,7 @@ class Enemy:
 					self.changeBehavior("hide")
 
 		
-		if self.behavior == "wander" and circleCollision(self.x, self.y, self.r, player.x, player.y, player.r + 155):
+		if self.behavior == "wander" and circleCollision(self.x, self.y, self.r, player.x, player.y, player.r + 275):
 			#print 'zbyt blisko gracz -> hide'
 			self.changeBehavior("hide")
 		
@@ -606,6 +606,7 @@ class Player():
 		screen.blit(txt, (0, 0))
 		txt = self.font.render("HP:" + str(self.hp), 1, (255,255,255))
 		screen.blit(txt, (1, 1))
+		#pygame.draw.circle(screen, (255, 0, 0), (int(self.x), int(self.y)), 275, 3)
 		
 		rtriangle = rotCenter(triangle, self.rot + 90) # + 90 bo rysuje od innego wierzcholka niz powinienem
 		screen.blit(rtriangle, (self.x - self.r / 1.6, self.y - self.r / 1.6)) # troche taka reczna koretka pozycji trojkata 
