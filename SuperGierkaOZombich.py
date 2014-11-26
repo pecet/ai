@@ -25,7 +25,7 @@ ENEMY_SPEED = 105
 BULLET_SPEED = 2222
 WRAP_AROUND = True # zawijac wspolrzedne? (tj - idziemy w prawo i dochodzimy do lewej krawedzi)
 NUM_OBSTACLES = 10
-NUM_ENEMIES = 15
+NUM_ENEMIES = 10
 DONT_CLEAR = False # true - nie odswiezamy ekranu, przydatne tylko dla jednego/malo enemiesow bo wtedy sie ladne sciezka narysuje
 ENEMY_RADIUS = 13
 OBSTACLE_MIN_RADIUS = 30
@@ -149,9 +149,9 @@ class Obstacle:
 		while repeatRandom:		
 			repeatRandom = False		
 					
-			self.x = random.randrange(0, WIDTH)
-			self.y = random.randrange(0, HEIGHT)
 			self.r = random.randrange(OBSTACLE_MIN_RADIUS, OBSTACLE_MAX_RADIUS)
+			self.x = random.randrange(self.r, WIDTH - self.r)
+			self.y = random.randrange(self.r, HEIGHT - self.r)
 			self.tag = False
 			
 			for ob in obstacles:
@@ -229,7 +229,7 @@ class Enemy:
 		elif behavior == 'pursuit': self.steering = self.pursuit
 		elif behavior == 'evade': self.steering = self.evade
 		elif behavior == 'wander': self.steering = self.wander
-		elif behavior == 'hide': self.steering = self.hide		
+		elif behavior == 'hide': self.steering = self.mix #self.hide		
 		else: raise Exception("changeBehavior: nieznana wartosc parametru behavior")
 		self.behavior = behavior
 		
@@ -353,6 +353,23 @@ class Enemy:
 				return desiredVelocity - self.velocity
 	
 		return Vec2d(0, 0)
+
+	def mix(self, player, obstacles, enemies, dt): # hide plus wamder
+		dist = 500 - self.position().get_distance(player.position())
+		wsp = 0.4 - ((dist * dist) / (900.0 * 900.0))
+		if wsp < 0.0:
+			wsp = 0.0
+		print wsp
+
+
+
+		wspWander = wsp
+		wspHide = 1.0 - wsp
+
+		print "wspWander" + str(wspWander) + " wspHide" + str(wspHide)
+	
+		vec = wspWander * self.wander(player, obstacles, enemies, dt) + wspHide * self.hide(player, obstacles, enemies, dt)
+		return vec 
 		
 	# ---------------------------------
 	def avoidance(self, obstacles):
@@ -407,10 +424,10 @@ class Enemy:
 		
 	def update(self, player, obstacles, bullets, enemies, dt):
 		steeringForce = self.steering(player, obstacles, enemies, dt)
-		avoidForce = self.avoidance(obstacles)
+		avoidForce = self.avoidance(obstacles) * 1.5
 		avoidForce2 = self.avoidance(enemies) / 8.0
 		if self.behavior != 'pursuit':
-			avoidForce3 = self.avoidance([player]) / 15.0
+			avoidForce3 = self.avoidance([player]) 
 		else:
 			avoidForce3 = Vec2d(0, 0)
 		acceleration = (steeringForce - avoidForce - avoidForce2 - avoidForce3) #/ 1.0 # wspolczynnik masy albo jakikolwiek skalujacy przyspieszenie
@@ -480,28 +497,7 @@ class Enemy:
 		if (len(enemies)<3):
 			self.colour = (127, 255,0)
 			self.changeBehavior('pursuit')
-		# ---------------------------------------
-		# losowo musimy zmieniac behavior na wander z hide
-		# zeby przeciwnicy od czasu do czasu wychodzili z zza przeszkod (latwiejsze robienie grup etc.)
-		# zwlaszcza gdy sa ta przeciwnicy odizolowani od innych 
-		self.randomTimer += dt # licznik odmierzajacy czas do nastepnej zmiany 
-		
-		if self.randomTimer >= 4.0: # co ok. 4 sekundy sprawdzamy oraz
-			self.randomTimer = 0.0
-			r = random.randrange(0, 4) # mamy 25% szans na zmiane
-			if r == 0: 
-				if self.behavior == "hide":
-					if not circleCollision(self.x, self.y, self.r, player.x, player.y, player.r + 275):
-						#print 'randomowa zmiana behaviora hide -> wander'
-						self.changeBehavior("wander")
-				elif self.behavior == "wander":
-					#print 'randomowa zmiana behaviora wander -> hide'
-					self.changeBehavior("hide")
 
-		
-		if self.behavior == "wander" and circleCollision(self.x, self.y, self.r, player.x, player.y, player.r + 275):
-			#print 'zbyt blisko gracz -> hide'
-			self.changeBehavior("hide")
 		
 	def __repr__(self):
 		return 'position=%s, velocity=%s, heading=%s' % (self.position(), self.velocity, self.heading)
