@@ -22,6 +22,26 @@ class Line:
 		self.p.append(p1)
 	def __repr__(self):
 		return "{p[0]=" + str(self.p[0]) + "; p[1]=" + str(self.p[1]) + "}"
+	def intersects(self, other):
+		return self.__line_intersects(self.p[0].x, self.p[0].y, self.p[1].x, self.p[1].y, other.p[0].x, other.p[0].y, other.p[1].x, other.p[1].y)
+		
+	# adaptacja z https://gist.github.com/Joncom/e8e8d18ebe7fe55c3894
+	def __line_intersects(self, p0_x, p0_y, p1_x, p1_y, p2_x, p2_y, p3_x, p3_y):
+		 
+		s1_x = float(p1_x - p0_x)
+		s1_y = float(p1_y - p0_y)
+		s2_x = float(p3_x - p2_x)
+		s2_y = float(p3_y - p2_y)
+		 
+		s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
+		t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
+		#print s, t
+		 
+		if (s >= 0 and s <= 1 and t >= 0 and t <= 1):
+			return True
+		 
+		return False
+
 		
 def saveLevel(levelData, output="level.txt"):
 	with open(output, "w") as file:
