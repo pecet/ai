@@ -25,6 +25,9 @@ PLAYER_RADIUS=40
 levelData = []
 levelData = loadLevel()
 graph = dict()
+enemies = []
+enemies.append(Enemy(Point(10, 10)))
+
 
 def checkIfEdgeInGraph(startNodeX, startNodeY, endNodeX, endNodeY): #zwraca true kiedy dany punk nie laczy sie z drugim punktem
 	if ((startNodeX, startNodeY)) in graph:
@@ -86,8 +89,16 @@ def main():
 	iii = False
 	pointsToDraw = []
 	floodStart(10,10, screen)
-	for key in graph.keys():
-		print str(key) + ": " + str(graph[key])
+	
+	droga = enemies[0].aStar(graph, 1010, 690) # punkt koncowy musi byc w grafie [!]
+	
+	#for key in graph.keys():
+#		print str(key) + ": " + str(graph[key])
+
+	with open("outputgrafu.txt", "w") as file: # zapisuje bo inne rzeczy sie wyswietlaja, a potrzebuje przy testowaniu A* wiedziec co jest w grafie zeby wiedziec jaki punkt koncowy podac
+		for key in graph.keys():
+			file.write (str(key) + "\n") #+ ": " + str(graph[key]))
+		
 		
 	while True:
 		pygame.time.wait(1) # bardzo odciaza procesor	
@@ -114,6 +125,12 @@ def main():
 
 		pygame.draw.line(screen, (0, 127, 0) if iii else (255, 0, 0), (testLine.p[0].x, testLine.p[0].y), (testLine.p[1].x, testLine.p[1].y),2)	
 				
+		drawAllEnemies(enemies, screen)	
+		
+		if droga:
+			for d in droga:		
+				pygame.draw.circle(screen, (255, 255, 0), d, 5)
+			
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:		
 				sys.exit(0)		

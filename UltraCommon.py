@@ -8,6 +8,7 @@
 import sys
 import os
 import math
+import pygame
 
 class Point:
 	def __init__(self, x = 0, y = 0):
@@ -52,6 +53,104 @@ class Line:
 		return False
 
 		
+
+class Enemy:
+	def __init__(self, pos = Point()):
+		self.pos = pos
+		self.r = 10
+	def draw(self, screen):
+		pygame.draw.circle(screen, (255, 0, 0), (self.pos.x, self.pos.y), self.r)
+		
+	def copyDict(self, graph, wartosc = 0):
+		ret = dict()
+		for key in graph.keys():
+			ret[key] = wartosc
+			#print key
+			
+		return ret
+		
+	def minFromDict(self, gdzieSzukac, skadWartosc):
+		naj = 999999
+		najx = None
+		for x in gdzieSzukac:
+			#print str(x) + "->" + str(skadWartosc[x])
+			if skadWartosc[x] < naj:
+				naj = skadWartosc[x]
+				najx = x
+		return najx
+		
+	def HEUR(self, x1, y1, x2, y2): #heurystyka
+		return 10 * ( abs(x1 - x2) + abs(y1 - y2) )
+		
+	def aStar(self, graph, koniecX, koniecY):
+		# zeby bylo zapisane w takiej samej formie jak w grafie
+		poczatek = (self.pos.x, self.pos.y)
+		koniec = (koniecX, koniecY)
+		otwarte = []
+		zamkniete = []
+		F = self.copyDict(graph)
+		G = self.copyDict(graph)
+		H = self.copyDict(graph)
+		rodzic = self.copyDict(graph, None)
+		otwarte.append(poczatek)
+		#print self.minFromDict(otwarte, F)
+		
+		licznik = 0 # takie licznik z ciekawosci
+		
+		while True:
+			licznik += 1
+			if koniec in zamkniete:
+				print 'Jest droga.'
+				print 'Liczba wywolan petli: ' + str(licznik) + ' ilosc kluczy w grafie: ' + str(len(graph))
+				# robimy droge elo
+				
+				droga = []
+				czego = koniec
+				while True:
+					if czego == None:
+						break
+					droga.append(czego)
+					czego = rodzic[czego]
+				
+				droga.reverse()
+				print droga
+				
+				return droga
+			
+			if not otwarte:
+				print 'Nie da sie tam dojsc albo algorytm zle dziala :/'
+				print 'Liczba wywolan petli: ' + str(licznik) + ' ilosc kluczy w grafie: ' + str(len(graph))
+				return None
+			
+			#print "Otwarte = " + str(otwarte)
+			#print "Zamkniete = " + str(zamkniete)
+			
+			aktualnePole = self.minFromDict(otwarte, F)
+			
+			#print "AktualnePole = " + str(aktualnePole)
+			
+			otwarte.remove(aktualnePole)
+			zamkniete.append(aktualnePole)
+			for sasiad in graph[aktualnePole]:
+				#print "   Sasiad = " + str(sasiad)
+				if sasiad in zamkniete:
+					continue
+				
+				if sasiad not in otwarte:
+					otwarte.append(sasiad)
+					rodzic[sasiad] = aktualnePole
+					G[sasiad] = 10 # tu jest stala wartosc bo mamy tylko kierunki proste w ktorych koszt jest taki sam, jakbysmy mieli skosy to wartosc na skos by byla wieksza (14 =~ sqrt(2) * 10) i wtedy ponizszy if tez bym mial sens, ale narazie niech bedzie tak
+					H[sasiad] = self.HEUR(sasiad[0], sasiad[1], koniecX, koniecY)
+					F[sasiad] = G[sasiad] + H[sasiad]
+				else:
+					if G[sasiad] + 10 < G[sasiad]: # to nie ma sensu jak nie mamy skosow, ale implementuje algorytm dalej wg. tego co ma byc
+						rodzic[sasiad] = aktualnePole
+						G[sasiad] = G[sasiad] + 10 
+						H[sasiad] = self.HEUR(sasiad[0], sasiad[1], koniecX, koniecY)
+						F[sasiad] = G[sasiad] + H[sasiad]						
+		
+		
+		
 def saveLevel(levelData, output="level.txt"):
 	with open(output, "w") as file:
 		for data in levelData:
@@ -75,6 +174,10 @@ def loadLevel(input="level.txt"):
 			
 	return levelData
 			
+			
+def drawAllEnemies(enemies, screen):
+	for enemy in enemies:
+		enemy.draw(screen)
 		
 if __name__ == "__main__":
 	sys.exit(0)

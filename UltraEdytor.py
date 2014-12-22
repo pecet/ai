@@ -36,6 +36,7 @@ def main():
 	levelData = []
 	levelData = loadLevel()
 	finishMe = len(levelData)
+
 	
 	while True:
 		pygame.time.wait(1) # bardzo odciaza procesor	
