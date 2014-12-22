@@ -71,6 +71,10 @@ def main():
 							levelData.append(Line(clickPos, Point(f.p[0].x, f.p[0].y)))
 							finishMe = len(levelData)
 							clickPos = None
+					elif event.button == 2:
+						if finishMe < len(levelData):
+							finishMe = len(levelData)
+							clickPos = None
 	
 	
 if __name__ == "__main__":
