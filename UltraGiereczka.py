@@ -21,7 +21,7 @@ sys.setrecursionlimit(50000)
 
 WIDTH = 1024
 HEIGHT = 768
-PLAYER_RADIUS=50
+PLAYER_RADIUS=40
 levelData = []
 levelData = loadLevel()
 graph = dict()
@@ -49,7 +49,7 @@ def checkIntersection(testline):
 			return False
 					
 def floodFill(startX, startY, endX, endY, screen):#kolizja jeszcze nie dodana
-	testLine = Line(Point(startX+1, startY+1), Point(endX, endY)) #musialem tu dodac 1 bo inaczej mialem float division by 0 error. Nie wiem czemu tak sie dzieje. Przez to jest tez ten blad z przechodzeniem czasem siatki przez przeszkody
+	testLine = Line(Point(startX, startY), Point(endX, endY)) #musialem tu dodac 1 bo inaczej mialem float division by 0 error. Nie wiem czemu tak sie dzieje. Przez to jest tez ten blad z przechodzeniem czasem siatki przez przeszkody
 	if endX>WIDTH or endX<1 or endY>HEIGHT or endY<1 or checkIntersection(testLine)==False:
 		pass
 	else:
@@ -94,9 +94,9 @@ def main():
 		pygame.display.flip()
 		screen.fill((222,222,222)) 
 
-		testLine = Line(Point(mx, my), Point(mx + 55, my + 55))
+		testLine = Line(Point(mx, my), Point(mx + 50, my))
 			
-		pygame.draw.line(screen, (0, 127, 0) if iii else (255, 0, 0), (testLine.p[0].x, testLine.p[0].y), (testLine.p[1].x, testLine.p[1].y),2)
+
 		
 		iii = False
 
@@ -112,6 +112,8 @@ def main():
 			for value in range (0,len(graph[key])):
 				pygame.draw.line(screen, (0, 0, 125), (key[0], key[1]), (graph[key][value][0], graph[key][value][1]),2)
 
+		pygame.draw.line(screen, (0, 127, 0) if iii else (255, 0, 0), (testLine.p[0].x, testLine.p[0].y), (testLine.p[1].x, testLine.p[1].y),2)	
+				
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:		
 				sys.exit(0)		

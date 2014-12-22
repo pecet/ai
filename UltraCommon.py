@@ -7,6 +7,7 @@
 
 import sys
 import os
+import math
 
 class Point:
 	def __init__(self, x = 0, y = 0):
@@ -27,14 +28,22 @@ class Line:
 		
 	# adaptacja z https://gist.github.com/Joncom/e8e8d18ebe7fe55c3894
 	def __line_intersects(self, p0_x, p0_y, p1_x, p1_y, p2_x, p2_y, p3_x, p3_y):
-		 
-		s1_x = float(p1_x - p0_x)
-		s1_y = float(p1_y - p0_y)
+		 		
+		s1_x = float(p1_x - p0_x) 
+		s1_y = float(p1_y - p0_y) 
 		s2_x = float(p3_x - p2_x)
 		s2_y = float(p3_y - p2_y)
-		 
-		s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
-		t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
+		
+		s = 0
+		t = 0		
+		mianownik = float(-s2_x * s1_y + s1_x * s2_y)
+
+		if math.fabs(mianownik) == 0:
+			return False
+		else:
+			s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / mianownik;
+			t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / mianownik;
+
 		#print s, t
 		 
 		if (s >= 0 and s <= 1 and t >= 0 and t <= 1):
