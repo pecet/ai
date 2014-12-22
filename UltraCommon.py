@@ -80,7 +80,13 @@ class Enemy:
 		return najx
 		
 	def HEUR(self, x1, y1, x2, y2): #heurystyka
-		return 10 * ( abs(x1 - x2) + abs(y1 - y2) )
+		#return 10 * ( abs(x1 - x2) + abs(y1 - y2) )
+		xD = abs(x1 - x2)
+		yD = abs(y1 - y2)
+		if xD > yD:
+			return 14 * yD + 10 * (xD - yD)
+		else:
+			return 14 * xD + 10 * (yD - xD)
 		
 	def aStar(self, graph, koniecX, koniecY):
 		# zeby bylo zapisane w takiej samej formie jak w grafie
