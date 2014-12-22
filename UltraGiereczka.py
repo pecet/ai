@@ -128,8 +128,12 @@ def main():
 		drawAllEnemies(enemies, screen)	
 		
 		if droga:
+			rodzic = None
 			for d in droga:		
 				pygame.draw.circle(screen, (255, 255, 0), d, 5)
+				if rodzic:
+					pygame.draw.line(screen, (255, 128, 0), d, rodzic, 2)			
+				rodzic = d
 				
 		if closest:
 			pygame.draw.circle(screen, (255, 0, 255), closest, 5)
