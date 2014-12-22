@@ -186,5 +186,19 @@ def drawAllEnemies(enemies, screen):
 	for enemy in enemies:
 		enemy.draw(screen)
 		
+def closestPointInGraph(graph, x, y): # najblizszy punkt w grafie do podanego punktu
+	odl = 9999999
+	co = None
+	for key in graph.keys():
+		newodl = (key[0] - x) * (key[0] - x) + (key[1] - y) * (key[1] - y) 
+		if newodl < odl:
+			odl = newodl
+			co = key
+	
+	return co
+		
+		
+		
+		
 if __name__ == "__main__":
 	sys.exit(0)

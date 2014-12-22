@@ -83,7 +83,7 @@ def main():
 	
 
 
-
+	closest = None
 	mx = 0
 	my = 0
 	iii = False
@@ -123,20 +123,28 @@ def main():
 			for value in range (0,len(graph[key])):
 				pygame.draw.line(screen, (0, 0, 125), (key[0], key[1]), (graph[key][value][0], graph[key][value][1]),2)
 
-		pygame.draw.line(screen, (0, 127, 0) if iii else (255, 0, 0), (testLine.p[0].x, testLine.p[0].y), (testLine.p[1].x, testLine.p[1].y),2)	
+		#pygame.draw.line(screen, (0, 127, 0) if iii else (255, 0, 0), (testLine.p[0].x, testLine.p[0].y), (testLine.p[1].x, testLine.p[1].y),2)	
 				
 		drawAllEnemies(enemies, screen)	
 		
 		if droga:
 			for d in droga:		
 				pygame.draw.circle(screen, (255, 255, 0), d, 5)
+				
+		if closest:
+			pygame.draw.circle(screen, (255, 0, 255), closest, 5)
+				
 			
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:		
 				sys.exit(0)		
 			elif event.type == pygame.MOUSEMOTION:
 				mx, my = pygame.mouse.get_pos()
-				#print mx, my
+				closest = closestPointInGraph(graph, mx, my)
+				#print closest
+			elif event.type == pygame.MOUSEBUTTONUP:
+				if closest:
+					droga = enemies[0].aStar(graph, closest[0], closest[1]) 
 
 	
 	
