@@ -28,6 +28,9 @@ graph = dict()
 enemies = []
 enemies.append(Enemy(Point(10, 10)))
 
+POKA_GRAF = False
+POKA_SCIEZKE = True
+
 
 def checkIfEdgeInGraph(startNodeX, startNodeY, endNodeX, endNodeY): #zwraca true kiedy dany punk nie laczy sie z drugim punktem
 	if ((startNodeX, startNodeY)) in graph:
@@ -119,15 +122,16 @@ def main():
 			if single:  # wystarczy przeciecie z jedna linia
 				iii = True
 				
-		for key in graph.keys():
-			for value in range (0,len(graph[key])):
-				pygame.draw.line(screen, (0, 0, 125), (key[0], key[1]), (graph[key][value][0], graph[key][value][1]),2)
+		if POKA_GRAF:
+			for key in graph.keys():
+				for value in range (0,len(graph[key])):
+					pygame.draw.line(screen, (0, 0, 125), (key[0], key[1]), (graph[key][value][0], graph[key][value][1]),2)
 
 		#pygame.draw.line(screen, (0, 127, 0) if iii else (255, 0, 0), (testLine.p[0].x, testLine.p[0].y), (testLine.p[1].x, testLine.p[1].y),2)	
 				
 		drawAllEnemies(enemies, screen)	
 		
-		if droga:
+		if droga and POKA_SCIEZKE:
 			rodzic = None
 			for d in droga:		
 				pygame.draw.circle(screen, (255, 255, 0), d, 5)
