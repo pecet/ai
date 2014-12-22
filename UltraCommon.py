@@ -80,6 +80,7 @@ class Enemy:
 		return najx
 		
 	def HEUR(self, x1, y1, x2, y2): #heurystyka
+		#return 0 # ciekawostka jak damy to to mamy algorytm dijkstry (sprawdzi wszystkie wartosci w grafie)
 		#return 10 * ( abs(x1 - x2) + abs(y1 - y2) )
 		xD = abs(x1 - x2)
 		yD = abs(y1 - y2)
