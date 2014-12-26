@@ -88,6 +88,10 @@ class Enemy:
 			return 14 * yD + 10 * (xD - yD)
 		else:
 			return 14 * xD + 10 * (yD - xD)
+			
+	def HEUR2(self, H, x1, y1, x2, y2): # inna heurystyka
+		return float(H + abs(x1 * y2 - x2 * y1) * 0.001)
+	
 		
 	def aStar(self, graph, koniecX, koniecY):
 		# zeby bylo zapisane w takiej samej formie jak w grafie
@@ -120,7 +124,7 @@ class Enemy:
 					czego = rodzic[czego]
 				
 				droga.reverse()
-				print droga
+				print 'Dlugosc drogi:' + str(len(droga))
 				
 				return droga
 			
@@ -148,12 +152,14 @@ class Enemy:
 					rodzic[sasiad] = aktualnePole
 					G[sasiad] = 10 # tu jest stala wartosc bo mamy tylko kierunki proste w ktorych koszt jest taki sam, jakbysmy mieli skosy to wartosc na skos by byla wieksza (14 =~ sqrt(2) * 10) i wtedy ponizszy if tez bym mial sens, ale narazie niech bedzie tak
 					H[sasiad] = self.HEUR(sasiad[0], sasiad[1], koniecX, koniecY)
+					#H[sasiad] = self.HEUR2(H[sasiad], sasiad[0], sasiad[1], koniecX, koniecY)
 					F[sasiad] = G[sasiad] + H[sasiad]
 				else:
 					if G[sasiad] + 10 < G[sasiad]: # to nie ma sensu jak nie mamy skosow, ale implementuje algorytm dalej wg. tego co ma byc
 						rodzic[sasiad] = aktualnePole
 						G[sasiad] = G[sasiad] + 10 
 						H[sasiad] = self.HEUR(sasiad[0], sasiad[1], koniecX, koniecY)
+						#H[sasiad] = self.HEUR2(H[sasiad], sasiad[0], sasiad[1], koniecX, koniecY)
 						F[sasiad] = G[sasiad] + H[sasiad]						
 		
 		

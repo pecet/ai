@@ -21,7 +21,7 @@ sys.setrecursionlimit(50000)
 
 WIDTH = 1024
 HEIGHT = 768
-PLAYER_RADIUS=40
+PLAYER_RADIUS=28
 levelData = []
 levelData = loadLevel()
 graph = dict()
