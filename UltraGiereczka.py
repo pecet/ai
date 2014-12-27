@@ -98,9 +98,9 @@ def main():
 	#for key in graph.keys():
 #		print str(key) + ": " + str(graph[key])
 
-	with open("outputgrafu.txt", "w") as file: # zapisuje bo inne rzeczy sie wyswietlaja, a potrzebuje przy testowaniu A* wiedziec co jest w grafie zeby wiedziec jaki punkt koncowy podac
-		for key in graph.keys():
-			file.write (str(key) + "\n") #+ ": " + str(graph[key]))
+#	with open("outputgrafu.txt", "w") as file: # zapisuje bo inne rzeczy sie wyswietlaja, a potrzebuje przy testowaniu A* wiedziec co jest w grafie zeby wiedziec jaki punkt koncowy podac
+#		for key in graph.keys():
+#			file.write (str(key) + "\n") #+ ": " + str(graph[key]))
 		
 		
 	updateClock = pygame.time.Clock()		
