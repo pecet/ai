@@ -57,7 +57,9 @@ class Line:
 class Enemy:
 	def __init__(self, pos = Point()):
 		self.pos = pos
-		self.r = 10
+		self.r = 5
+		self.droga = [] 
+		self.drogaIndeks = 0
 	def draw(self, screen):
 		pygame.draw.circle(screen, (255, 0, 0), (self.pos.x, self.pos.y), self.r)
 		
@@ -91,7 +93,6 @@ class Enemy:
 			
 	def HEUR2(self, H, x1, y1, x2, y2): # inna heurystyka
 		return float(H + abs(x1 * y2 - x2 * y1) * 0.001)
-	
 		
 	def aStar(self, graph, koniecX, koniecY):
 		# zeby bylo zapisane w takiej samej formie jak w grafie
@@ -162,7 +163,49 @@ class Enemy:
 						#H[sasiad] = self.HEUR2(H[sasiad], sasiad[0], sasiad[1], koniecX, koniecY)
 						F[sasiad] = G[sasiad] + H[sasiad]						
 		
+	
+	def goTo(self, graph, koniecX, koniecY):
+		closestToSelf = closestPointInGraph(graph, self.pos.x, self.pos.y)
+		if not closestToSelf:
+			return
+		self.pos.x = closestToSelf[0]
+		self.pos.y = closestToSelf[1]
+	
+		droga = self.aStar(graph, koniecX, koniecY)
+		if not droga:
+			droga = []			
+		self.droga = droga
+		self.drogaIndeks = 0
 		
+	def update(self):
+		if not self.droga:
+			return
+		elif self.drogaIndeks >= len(self.droga):
+			return
+			
+		# prosty path following
+		#target x i y
+		x = self.droga[self.drogaIndeks][0]
+		y = self.droga[self.drogaIndeks][1]
+		print x, y
+		if x == self.pos.x and y == self.pos.y:
+			self.drogaIndeks += 1
+			return
+		elif self.pos.x < x:
+			self.pos.x += 1
+			return
+		elif self.pos.x > x:
+			self.pos.x -= 1
+			return			
+		elif self.pos.y < y:
+			self.pos.y += 1
+			return
+		elif self.pos.y > y:
+			self.pos.y -= 1
+			return								
+			
+		
+	
 		
 def saveLevel(levelData, output="level.txt"):
 	with open(output, "w") as file:
@@ -191,6 +234,10 @@ def loadLevel(input="level.txt"):
 def drawAllEnemies(enemies, screen):
 	for enemy in enemies:
 		enemy.draw(screen)
+		
+def updateAllEnemies(enemies):
+	for enemy in enemies:
+		enemy.update()		
 		
 def closestPointInGraph(graph, x, y): # najblizszy punkt w grafie do podanego punktu
 	odl = 9999999

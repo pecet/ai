@@ -21,7 +21,7 @@ sys.setrecursionlimit(50000)
 
 WIDTH = 1024
 HEIGHT = 768
-PLAYER_RADIUS=28
+PLAYER_RADIUS=40
 levelData = []
 levelData = loadLevel()
 graph = dict()
@@ -92,8 +92,8 @@ def main():
 	iii = False
 	pointsToDraw = []
 	floodStart(10,10, screen)
-	
-	droga = enemies[0].aStar(graph, 1010, 690) # punkt koncowy musi byc w grafie [!]
+	rrr = random.choice(graph.keys())
+	enemies[0].goTo(graph, rrr[0], rrr[1]) # punkt koncowy musi byc w grafie [!]
 	
 	#for key in graph.keys():
 #		print str(key) + ": " + str(graph[key])
@@ -103,8 +103,12 @@ def main():
 			file.write (str(key) + "\n") #+ ": " + str(graph[key]))
 		
 		
+	updateClock = pygame.time.Clock()		
 	while True:
-		pygame.time.wait(1) # bardzo odciaza procesor	
+		dt = updateClock.tick(120) # im wiecej tutaj, tym szybciej bedzie sie wszystko dzialo, tez chodzenie przeciwnikow
+		dt = float(dt) / 1000 #przeliczamy milisekundy do sekund
+		#print dt
+	
 		pygame.display.flip()
 		screen.fill((222,222,222)) 
 
@@ -129,11 +133,12 @@ def main():
 
 		#pygame.draw.line(screen, (0, 127, 0) if iii else (255, 0, 0), (testLine.p[0].x, testLine.p[0].y), (testLine.p[1].x, testLine.p[1].y),2)	
 				
+		updateAllEnemies(enemies)
 		drawAllEnemies(enemies, screen)	
 		
-		if droga and POKA_SCIEZKE:
+		if enemies[0].droga and POKA_SCIEZKE:
 			rodzic = None
-			for d in droga:		
+			for d in enemies[0].droga:		
 				pygame.draw.circle(screen, (255, 255, 0), d, 5)
 				if rodzic:
 					pygame.draw.line(screen, (255, 128, 0), d, rodzic, 2)			
@@ -152,7 +157,7 @@ def main():
 				#print closest
 			elif event.type == pygame.MOUSEBUTTONUP:
 				if closest:
-					droga = enemies[0].aStar(graph, closest[0], closest[1]) 
+					enemies[0].goTo(graph, closest[0], closest[1]) 
 
 	
 	
