@@ -25,6 +25,7 @@ PLAYER_RADIUS=40
 levelData = []
 levelData = loadLevel()
 graph = dict()
+Enemy.graph = graph
 enemies = []
 enemies.append(Enemy(Point(10, 10)))
 
@@ -92,8 +93,8 @@ def main():
 	iii = False
 	pointsToDraw = []
 	floodStart(10,10, screen)
-	rrr = random.choice(graph.keys())
-	enemies[0].goTo(graph, rrr[0], rrr[1]) # punkt koncowy musi byc w grafie [!]
+	#rrr = random.choice(graph.keys())
+	#enemies[0].goTo(graph, rrr[0], rrr[1]) # punkt koncowy musi byc w grafie [!]
 	
 	#for key in graph.keys():
 #		print str(key) + ": " + str(graph[key])
@@ -157,7 +158,7 @@ def main():
 				#print closest
 			elif event.type == pygame.MOUSEBUTTONUP:
 				if closest:
-					enemies[0].goTo(graph, closest[0], closest[1]) 
+					enemies[0].goTo(closest[0], closest[1]) 
 
 	
 	

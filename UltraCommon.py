@@ -53,13 +53,56 @@ class Line:
 		return False
 
 		
+class FSM:
+	def __init__(self, enemy, graph):
+		self.enemy = enemy
+		self.state = GoToRandomPointState()
+		self.graph = graph
+	def update(self):
+		#---------- tutaj trzeba zmieniac stany ------------
+		
+		
+		#---------- tutaj wywolujemy rzeczy ktore robi wybrany stan -------
+		if self.state:
+			self.state.execute(self.enemy, self.graph)
+	def changeState(self, newState):
+		if self.state:
+			self.state.exit(self.enemy, self.graph)
+			
+		self.state = newState
+		
+		if self.state:
+			self.state.enter(self.enemy, self.graph)
+
+class State:
+	def enter(self, enemy, graph):
+		pass
+	def execute(self, enemy, graph):
+		pass
+	def exit(self, enemy, graph):
+		pass
+		
+class GoToRandomPointState(State):
+	def enter(self, enemy, graph):
+		rrr = random.choice(graph.keys())
+		enemy.goTo(rrr[0], rrr[1]) 
+	def execute(self, enemy, graph):
+		enemy.followPath()
+		enemy.followPath()
+	def exit(self, enemy, graph):
+		pass
+	
 
 class Enemy:
+	# statyczne zmienne
+	graph = None
+
 	def __init__(self, pos = Point()):
 		self.pos = pos
 		self.r = 5
 		self.droga = [] 
 		self.drogaIndeks = 0
+		self.FSM = FSM(self, Enemy.graph)
 	def draw(self, screen):
 		pygame.draw.circle(screen, (255, 0, 0), (self.pos.x, self.pos.y), self.r)
 		
@@ -94,7 +137,8 @@ class Enemy:
 	def HEUR2(self, H, x1, y1, x2, y2): # inna heurystyka
 		return float(H + abs(x1 * y2 - x2 * y1) * 0.001)
 		
-	def aStar(self, graph, koniecX, koniecY):
+	def aStar(self, koniecX, koniecY):
+		graph = Enemy.graph 
 		# zeby bylo zapisane w takiej samej formie jak w grafie
 		poczatek = (self.pos.x, self.pos.y)
 		koniec = (koniecX, koniecY)
@@ -164,20 +208,20 @@ class Enemy:
 						F[sasiad] = G[sasiad] + H[sasiad]						
 		
 	
-	def goTo(self, graph, koniecX, koniecY):
-		closestToSelf = closestPointInGraph(graph, self.pos.x, self.pos.y)
+	def goTo(self, koniecX, koniecY):
+		closestToSelf = closestPointInGraph(Enemy.graph, self.pos.x, self.pos.y)
 		if not closestToSelf:
 			return
 		self.pos.x = closestToSelf[0]
 		self.pos.y = closestToSelf[1]
 	
-		droga = self.aStar(graph, koniecX, koniecY)
+		droga = self.aStar(koniecX, koniecY)
 		if not droga:
 			droga = []			
 		self.droga = droga
 		self.drogaIndeks = 0
 		
-	def update(self):
+	def followPath(self):
 		if not self.droga:
 			return
 		elif self.drogaIndeks >= len(self.droga):
@@ -187,7 +231,7 @@ class Enemy:
 		#target x i y
 		x = self.droga[self.drogaIndeks][0]
 		y = self.droga[self.drogaIndeks][1]
-		print x, y
+		#print x, y
 		if x == self.pos.x and y == self.pos.y:
 			self.drogaIndeks += 1
 			return
@@ -237,7 +281,8 @@ def drawAllEnemies(enemies, screen):
 		
 def updateAllEnemies(enemies):
 	for enemy in enemies:
-		enemy.update()		
+		#enemy.followPath()		
+		enemy.FSM.update()
 		
 def closestPointInGraph(graph, x, y): # najblizszy punkt w grafie do podanego punktu
 	odl = 9999999
