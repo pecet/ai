@@ -9,6 +9,7 @@ import sys
 import os
 import math
 import pygame
+import random
 
 class Point:
 	def __init__(self, x = 0, y = 0):
@@ -56,7 +57,7 @@ class Line:
 class FSM:
 	def __init__(self, enemy, graph):
 		self.enemy = enemy
-		self.state = GoToRandomPointState()
+		self.state = None
 		self.graph = graph
 	def update(self):
 		#---------- tutaj trzeba zmieniac stany ------------
@@ -87,8 +88,9 @@ class GoToRandomPointState(State):
 		rrr = random.choice(graph.keys())
 		enemy.goTo(rrr[0], rrr[1]) 
 	def execute(self, enemy, graph):
-		enemy.followPath()
-		enemy.followPath()
+		if enemy.followPath() == False:
+			self.enter(enemy, graph)
+		
 	def exit(self, enemy, graph):
 		pass
 	
@@ -103,6 +105,7 @@ class Enemy:
 		self.droga = [] 
 		self.drogaIndeks = 0
 		self.FSM = FSM(self, Enemy.graph)
+		self.FSM.changeState(GoToRandomPointState())
 	def draw(self, screen):
 		pygame.draw.circle(screen, (255, 0, 0), (self.pos.x, self.pos.y), self.r)
 		
@@ -221,11 +224,11 @@ class Enemy:
 		self.droga = droga
 		self.drogaIndeks = 0
 		
-	def followPath(self):
+	def followPath(self): # true jak sie cos przesunelismy, false jak sie nic nie przesunelismy (bo np. koniec drogi)
 		if not self.droga:
-			return
+			return False
 		elif self.drogaIndeks >= len(self.droga):
-			return
+			return False
 			
 		# prosty path following
 		#target x i y
@@ -234,19 +237,19 @@ class Enemy:
 		#print x, y
 		if x == self.pos.x and y == self.pos.y:
 			self.drogaIndeks += 1
-			return
+			return True
 		elif self.pos.x < x:
 			self.pos.x += 1
-			return
+			return True
 		elif self.pos.x > x:
 			self.pos.x -= 1
-			return			
+			return True	
 		elif self.pos.y < y:
 			self.pos.y += 1
-			return
+			return True
 		elif self.pos.y > y:
 			self.pos.y -= 1
-			return								
+			return True						
 			
 		
 	

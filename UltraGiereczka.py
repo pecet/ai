@@ -21,16 +21,15 @@ sys.setrecursionlimit(50000)
 
 WIDTH = 1024
 HEIGHT = 768
-PLAYER_RADIUS=40
+PLAYER_RADIUS=37
 levelData = []
 levelData = loadLevel()
 graph = dict()
 Enemy.graph = graph
 enemies = []
-enemies.append(Enemy(Point(10, 10)))
 
 POKA_GRAF = False
-POKA_SCIEZKE = True
+POKA_SCIEZKE = False
 
 
 def checkIfEdgeInGraph(startNodeX, startNodeY, endNodeX, endNodeY): #zwraca true kiedy dany punk nie laczy sie z drugim punktem
@@ -93,16 +92,13 @@ def main():
 	iii = False
 	pointsToDraw = []
 	floodStart(10,10, screen)
-	#rrr = random.choice(graph.keys())
-	#enemies[0].goTo(graph, rrr[0], rrr[1]) # punkt koncowy musi byc w grafie [!]
 	
-	#for key in graph.keys():
-#		print str(key) + ": " + str(graph[key])
-
-#	with open("outputgrafu.txt", "w") as file: # zapisuje bo inne rzeczy sie wyswietlaja, a potrzebuje przy testowaniu A* wiedziec co jest w grafie zeby wiedziec jaki punkt koncowy podac
-#		for key in graph.keys():
-#			file.write (str(key) + "\n") #+ ": " + str(graph[key]))
-		
+	poz = closestPointInGraph(graph, 0, 0)
+	enemies.append(Enemy(Point(poz[0], poz[1])))
+	
+	poz = closestPointInGraph(graph, WIDTH, HEIGHT)
+	enemies.append(Enemy(Point(poz[0], poz[1])))
+	
 		
 	updateClock = pygame.time.Clock()		
 	while True:
