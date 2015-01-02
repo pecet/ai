@@ -29,7 +29,7 @@ Enemy.graph = graph
 enemies = []
 
 POKA_GRAF = False
-POKA_SCIEZKE = False
+POKA_SCIEZKE = True
 
 
 def checkIfEdgeInGraph(startNodeX, startNodeY, endNodeX, endNodeY): #zwraca true kiedy dany punk nie laczy sie z drugim punktem
