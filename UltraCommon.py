@@ -132,11 +132,11 @@ class Enemy:
 		#return 10 * ( abs(x1 - x2) + abs(y1 - y2) )
 		xD = abs(x1 - x2)
 		yD = abs(y1 - y2)
-		#return 0
+		return 0
 		if xD > yD:
-			return (14 * yD + 10 * (xD - yD))
+			return (14 * yD + 10 * (xD - yD)) / 3
 		else:
-			return (14 * xD + 10 * (yD - xD))
+			return (14 * xD + 10 * (yD - xD)) / 3
 			
 	def HEUR2(self, H, x1, y1, x2, y2): # inna heurystyka
 		return float(H + abs(x1 * y2 - x2 * y1) * 0.001)
