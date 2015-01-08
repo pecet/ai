@@ -132,6 +132,7 @@ class Enemy:
 		#return 10 * ( abs(x1 - x2) + abs(y1 - y2) )
 		xD = abs(x1 - x2)
 		yD = abs(y1 - y2)
+		#return 0
 		if xD > yD:
 			return (14 * yD + 10 * (xD - yD))
 		else:
@@ -140,13 +141,15 @@ class Enemy:
 	def HEUR2(self, H, x1, y1, x2, y2): # inna heurystyka
 		return float(H + abs(x1 * y2 - x2 * y1) * 0.001)
 		
-	def COST(self, x1, y1, x2, y2):
+	def distBetween(self, x1, y1, x2, y2):
 		#hack
 		a = x1 - x2
-		b = x2 - y2
+		b = y1 - y2
 		if a == 0 or b == 0:
+			#print 'skos'
 			return 10
 		else:
+			#print 'nieskos'
 			return 14
 		
 	def aStar(self, koniecX, koniecY):
@@ -207,17 +210,18 @@ class Enemy:
 				if sasiad not in otwarte:
 					otwarte.append(sasiad)
 					rodzic[sasiad] = aktualnePole
-					G[sasiad] = self.COST(aktualnePole[0], aktualnePole[1], sasiad[0], sasiad[1])
+					G[sasiad] = self.distBetween(aktualnePole[0], aktualnePole[1], sasiad[0], sasiad[1])
 					H[sasiad] = self.HEUR(sasiad[0], sasiad[1], koniecX, koniecY)
-					#H[sasiad] = self.HEUR2(H[sasiad], sasiad[0], sasiad[1], koniecX, koniecY)
 					F[sasiad] = G[sasiad] + H[sasiad]
 				else:
-					if G[sasiad] + self.COST(aktualnePole[0], aktualnePole[1], sasiad[0], sasiad[1]) < G[sasiad]: 
+					nowyKosztG = G[aktualnePole] + self.distBetween(aktualnePole[0], aktualnePole[1], sasiad[0], sasiad[1])
+					#print G[sasiad], nowyKosztG
+					if  nowyKosztG < G[sasiad]: 
+						print 'To sie powinno kiedys pojawic na ekranie ;/'
 						rodzic[sasiad] = aktualnePole
-						G[sasiad] = G[sasiad] + self.COST(aktualnePole[0], aktualnePole[1], sasiad[0], sasiad[1])
+						G[sasiad] = nowyKosztG
 						H[sasiad] = self.HEUR(sasiad[0], sasiad[1], koniecX, koniecY)
-						#H[sasiad] = self.HEUR2(H[sasiad], sasiad[0], sasiad[1], koniecX, koniecY)
-						F[sasiad] = G[sasiad] + H[sasiad]						
+						F[sasiad] = G[sasiad] + H[sasiad]			
 		
 	
 	def goTo(self, koniecX, koniecY):

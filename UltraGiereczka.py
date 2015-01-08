@@ -86,16 +86,17 @@ def floodFill(startX, startY, endX, endY, screen):#kolizja jeszcze nie dodana
 				#floodFill(endX, endY, endX, endY-PLAYER_RADIUS, screen)#w dol
 				
 			#skosy
-			if checkIfEdgeInGraph(endX, endY, endX+PLAYER_RADIUS, endY+PLAYER_RADIUS) == True:
-				if [endX, endY, endX+PLAYER_RADIUS, endY + PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX+PLAYER_RADIUS, endY + PLAYER_RADIUS])				
-			if checkIfEdgeInGraph(endX, endY, endX-PLAYER_RADIUS, endY-PLAYER_RADIUS) == True:
-				if [endX, endY, endX-PLAYER_RADIUS, endY - PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX-PLAYER_RADIUS, endY - PLAYER_RADIUS])
+			if True:
+				if checkIfEdgeInGraph(endX, endY, endX+PLAYER_RADIUS, endY+PLAYER_RADIUS) == True:
+					if [endX, endY, endX+PLAYER_RADIUS, endY + PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX+PLAYER_RADIUS, endY + PLAYER_RADIUS])				
+				if checkIfEdgeInGraph(endX, endY, endX-PLAYER_RADIUS, endY-PLAYER_RADIUS) == True:
+					if [endX, endY, endX-PLAYER_RADIUS, endY - PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX-PLAYER_RADIUS, endY - PLAYER_RADIUS])
 
-			if checkIfEdgeInGraph(endX, endY, endX+PLAYER_RADIUS, endY-PLAYER_RADIUS) == True:
-				if [endX, endY, endX+PLAYER_RADIUS, endY - PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX+PLAYER_RADIUS, endY - PLAYER_RADIUS])
+				if checkIfEdgeInGraph(endX, endY, endX+PLAYER_RADIUS, endY-PLAYER_RADIUS) == True:
+					if [endX, endY, endX+PLAYER_RADIUS, endY - PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX+PLAYER_RADIUS, endY - PLAYER_RADIUS])
 
-			if checkIfEdgeInGraph(endX, endY, endX-PLAYER_RADIUS, endY+PLAYER_RADIUS) == True:
-				if [endX, endY, endX-PLAYER_RADIUS, endY + PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX-PLAYER_RADIUS, endY + PLAYER_RADIUS])				
+				if checkIfEdgeInGraph(endX, endY, endX-PLAYER_RADIUS, endY+PLAYER_RADIUS) == True:
+					if [endX, endY, endX-PLAYER_RADIUS, endY + PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX-PLAYER_RADIUS, endY + PLAYER_RADIUS])				
 
 def floodFill_old(startX, startY, endX, endY, screen):#kolizja jeszcze nie dodana
 
