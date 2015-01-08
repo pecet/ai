@@ -134,9 +134,9 @@ class Enemy:
 		yD = abs(y1 - y2)
 		return 0
 		if xD > yD:
-			return (14 * yD + 10 * (xD - yD)) / 3
+			return (14 * yD + 10 * (xD - yD)) 
 		else:
-			return (14 * xD + 10 * (yD - xD)) / 3
+			return (14 * xD + 10 * (yD - xD)) 
 			
 	def HEUR2(self, H, x1, y1, x2, y2): # inna heurystyka
 		return float(H + abs(x1 * y2 - x2 * y1) * 0.001)
@@ -171,8 +171,8 @@ class Enemy:
 		while True:
 			licznik += 1
 			if koniec in zamkniete:
-				print 'Jest droga.'
-				print 'Liczba wywolan petli: ' + str(licznik) + ' ilosc kluczy w grafie: ' + str(len(graph))
+				#print 'Jest droga.'
+				#print 'Liczba wywolan petli: ' + str(licznik) + ' ilosc kluczy w grafie: ' + str(len(graph))
 				# robimy droge elo
 				
 				droga = []
@@ -184,13 +184,13 @@ class Enemy:
 					czego = rodzic[czego]
 				
 				droga.reverse()
-				print 'Dlugosc drogi:' + str(len(droga))
+				#print 'Dlugosc drogi:' + str(len(droga))
 				
 				return droga
 			
 			if not otwarte:
-				print 'Nie da sie tam dojsc albo algorytm zle dziala :/'
-				print 'Liczba wywolan petli: ' + str(licznik) + ' ilosc kluczy w grafie: ' + str(len(graph))
+				#print 'Nie da sie tam dojsc albo algorytm zle dziala :/'
+				#print 'Liczba wywolan petli: ' + str(licznik) + ' ilosc kluczy w grafie: ' + str(len(graph))
 				return None
 			
 			#print "Otwarte = " + str(otwarte)
@@ -207,17 +207,17 @@ class Enemy:
 				if sasiad in zamkniete:
 					continue
 				
+				nowyKosztG = G[aktualnePole] + self.distBetween(aktualnePole[0], aktualnePole[1], sasiad[0], sasiad[1])
+				
 				if sasiad not in otwarte:
 					otwarte.append(sasiad)
 					rodzic[sasiad] = aktualnePole
-					G[sasiad] = self.distBetween(aktualnePole[0], aktualnePole[1], sasiad[0], sasiad[1])
+					G[sasiad] = nowyKosztG
 					H[sasiad] = self.HEUR(sasiad[0], sasiad[1], koniecX, koniecY)
 					F[sasiad] = G[sasiad] + H[sasiad]
 				else:
-					nowyKosztG = G[aktualnePole] + self.distBetween(aktualnePole[0], aktualnePole[1], sasiad[0], sasiad[1])
-					#print G[sasiad], nowyKosztG
-					if  nowyKosztG < G[sasiad]: 
-						print 'To sie powinno kiedys pojawic na ekranie ;/'
+					if nowyKosztG < G[sasiad]: 
+						#print 'dat'
 						rodzic[sasiad] = aktualnePole
 						G[sasiad] = nowyKosztG
 						H[sasiad] = self.HEUR(sasiad[0], sasiad[1], koniecX, koniecY)
