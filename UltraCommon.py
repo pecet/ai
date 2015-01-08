@@ -140,6 +140,15 @@ class Enemy:
 	def HEUR2(self, H, x1, y1, x2, y2): # inna heurystyka
 		return float(H + abs(x1 * y2 - x2 * y1) * 0.001)
 		
+	def COST(self, x1, y1, x2, y2):
+		#hack
+		a = x1 - x2
+		b = x2 - y2
+		if a == 0 or b == 0:
+			return 10
+		else:
+			return 14
+		
 	def aStar(self, koniecX, koniecY):
 		graph = Enemy.graph 
 		# zeby bylo zapisane w takiej samej formie jak w grafie
@@ -198,14 +207,14 @@ class Enemy:
 				if sasiad not in otwarte:
 					otwarte.append(sasiad)
 					rodzic[sasiad] = aktualnePole
-					G[sasiad] = 10 # tu jest stala wartosc bo mamy tylko kierunki proste w ktorych koszt jest taki sam, jakbysmy mieli skosy to wartosc na skos by byla wieksza (14 =~ sqrt(2) * 10) i wtedy ponizszy if tez bym mial sens, ale narazie niech bedzie tak
+					G[sasiad] = self.COST(aktualnePole[0], aktualnePole[1], sasiad[0], sasiad[1])
 					H[sasiad] = self.HEUR(sasiad[0], sasiad[1], koniecX, koniecY)
 					#H[sasiad] = self.HEUR2(H[sasiad], sasiad[0], sasiad[1], koniecX, koniecY)
 					F[sasiad] = G[sasiad] + H[sasiad]
 				else:
-					if G[sasiad] + 10 < G[sasiad]: # to nie ma sensu jak nie mamy skosow, ale implementuje algorytm dalej wg. tego co ma byc
+					if G[sasiad] + self.COST(aktualnePole[0], aktualnePole[1], sasiad[0], sasiad[1]) < G[sasiad]: 
 						rodzic[sasiad] = aktualnePole
-						G[sasiad] = G[sasiad] + 10 
+						G[sasiad] = G[sasiad] + self.COST(aktualnePole[0], aktualnePole[1], sasiad[0], sasiad[1])
 						H[sasiad] = self.HEUR(sasiad[0], sasiad[1], koniecX, koniecY)
 						#H[sasiad] = self.HEUR2(H[sasiad], sasiad[0], sasiad[1], koniecX, koniecY)
 						F[sasiad] = G[sasiad] + H[sasiad]						
@@ -238,18 +247,20 @@ class Enemy:
 		if x == self.pos.x and y == self.pos.y:
 			self.drogaIndeks += 1
 			return True
-		elif self.pos.x < x:
+		if self.pos.x < x:
 			self.pos.x += 1
-			return True
+			#return True
 		elif self.pos.x > x:
 			self.pos.x -= 1
-			return True	
-		elif self.pos.y < y:
+			#return True	
+		if self.pos.y < y:
 			self.pos.y += 1
-			return True
+			#return True
 		elif self.pos.y > y:
 			self.pos.y -= 1
-			return True						
+			#return True						
+		
+		return True
 			
 		
 	
