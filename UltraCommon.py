@@ -133,9 +133,9 @@ class Enemy:
 		xD = abs(x1 - x2)
 		yD = abs(y1 - y2)
 		if xD > yD:
-			return 14 * yD + 10 * (xD - yD)
+			return (14 * yD + 10 * (xD - yD))
 		else:
-			return 14 * xD + 10 * (yD - xD)
+			return (14 * xD + 10 * (yD - xD))
 			
 	def HEUR2(self, H, x1, y1, x2, y2): # inna heurystyka
 		return float(H + abs(x1 * y2 - x2 * y1) * 0.001)

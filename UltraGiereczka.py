@@ -17,7 +17,7 @@ import time
 import os
 import copy
 from UltraCommon import *
-sys.setrecursionlimit(50000)
+#sys.setrecursionlimit(50000)
 
 WIDTH = 1024
 HEIGHT = 768
@@ -28,7 +28,7 @@ graph = dict()
 Enemy.graph = graph
 enemies = []
 
-POKA_GRAF = False
+POKA_GRAF = True
 POKA_SCIEZKE = True
 
 
@@ -43,10 +43,12 @@ def checkIfEdgeInGraph(startNodeX, startNodeY, endNodeX, endNodeY): #zwraca true
 
 #pisalem to wzorujac sie na tym http://pl.wikipedia.org/wiki/Rozrost_ziarna
 def floodStart(startX, startY, screen):
-	floodFill(startX, startY, startX+PLAYER_RADIUS, startY, screen)
-	floodFill(startX, startY, startX, startY+PLAYER_RADIUS, screen)
-	floodFill(startX, startY, startX-PLAYER_RADIUS, startY, screen)
-	floodFill(startX, startY, startX, startY-PLAYER_RADIUS, screen)
+	floodFill(startX, startY, startX, startY, screen)
+	#floodFill_old(startX, startY, startX, startY, screen)
+	#floodFill(startX, startY, startX+PLAYER_RADIUS, startY, screen)
+	#floodFill(startX, startY, startX, startY+PLAYER_RADIUS, screen)
+	#floodFill(startX, startY, startX-PLAYER_RADIUS, startY, screen)
+	#floodFill(startX, startY, startX, startY-PLAYER_RADIUS, screen)
 
 	
 def checkIntersection(testline):
@@ -55,6 +57,36 @@ def checkIntersection(testline):
 			return False
 					
 def floodFill(startX, startY, endX, endY, screen):#kolizja jeszcze nie dodana
+	kolej = []
+	kolej.append([startX, startY, endX, endY])
+	
+	while True:
+		if not kolej: return
+		startX, startY, endX, endY = kolej.pop()
+		testLine = Line(Point(startX, startY), Point(endX, endY)) #musialem tu dodac 1 bo inaczej mialem float division by 0 error. Nie wiem czemu tak sie dzieje. Przez to jest tez ten blad z przechodzeniem czasem siatki przez przeszkody
+		if endX>WIDTH or endX<1 or endY>HEIGHT or endY<1 or checkIntersection(testLine)==False:
+			pass
+		else:
+			dodaj = checkIfEdgeInGraph(startX, startY, endX, endY) #przed dodaniem krawedzi do grafu sprawdzamy czy juz jej czasem tam nie ma
+
+			if dodaj == True:
+				graph.setdefault((startX, startY), []).append((endX, endY))
+				
+			if checkIfEdgeInGraph(endX, endY, endX+PLAYER_RADIUS, endY) == True:
+				if [endX, endY, endX+PLAYER_RADIUS, endY] not in kolej: kolej.append([endX, endY, endX+PLAYER_RADIUS, endY])
+				#floodFill(endX, endY, endX+PLAYER_RADIUS, endY, screen)#w prawo
+			if checkIfEdgeInGraph(endX, endY, endX, endY+PLAYER_RADIUS) == True:
+				if [endX, endY, endX, endY+PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX, endY+PLAYER_RADIUS])
+				#floodFill(endX, endY, endX, endY+PLAYER_RADIUS, screen)#w gore
+			if checkIfEdgeInGraph(endX, endY, endX-PLAYER_RADIUS, endY) == True:
+				if [endX, endY, endX-PLAYER_RADIUS, endY] not in kolej: kolej.append([endX, endY, endX-PLAYER_RADIUS, endY])
+				#floodFill(endX, endY, endX-PLAYER_RADIUS, endY, screen)#w lewo
+			if checkIfEdgeInGraph(endX, endY, endX, endY-PLAYER_RADIUS) == True:
+				if [endX, endY, endX, endY-PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX, endY-PLAYER_RADIUS])
+				#floodFill(endX, endY, endX, endY-PLAYER_RADIUS, screen)#w dol
+
+def floodFill_old(startX, startY, endX, endY, screen):#kolizja jeszcze nie dodana
+
 	testLine = Line(Point(startX, startY), Point(endX, endY)) #musialem tu dodac 1 bo inaczej mialem float division by 0 error. Nie wiem czemu tak sie dzieje. Przez to jest tez ten blad z przechodzeniem czasem siatki przez przeszkody
 	if endX>WIDTH or endX<1 or endY>HEIGHT or endY<1 or checkIntersection(testLine)==False:
 		pass
@@ -71,9 +103,7 @@ def floodFill(startX, startY, endX, endY, screen):#kolizja jeszcze nie dodana
 		if checkIfEdgeInGraph(endX, endY, endX-PLAYER_RADIUS, endY) == True:
 			floodFill(endX, endY, endX-PLAYER_RADIUS, endY, screen)#w lewo
 		if checkIfEdgeInGraph(endX, endY, endX, endY-PLAYER_RADIUS) == True:
-			floodFill(endX, endY, endX, endY-PLAYER_RADIUS, screen)#w dol
-
-			
+			floodFill(endX, endY, endX, endY-PLAYER_RADIUS, screen)#w dol			
 	
 	
 def main():
