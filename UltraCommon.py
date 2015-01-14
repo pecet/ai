@@ -10,6 +10,7 @@ import os
 import math
 import pygame
 import random
+import pickle
 
 class Point:
 	def __init__(self, x = 0, y = 0):
@@ -275,6 +276,11 @@ class Enemy:
 			
 		
 	
+def saveGraph(graph, output="graph_pickle.txt"):
+	pickle.dump(graph, open(output, "wb" ))
+
+def loadGraph(input="graph_pickle.txt"):
+	return pickle.load(open(input, "rb"))
 		
 def saveLevel(levelData, output="level.txt"):
 	with open(output, "w") as file:

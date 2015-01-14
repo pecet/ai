@@ -169,6 +169,7 @@ def floodFill_old(startX, startY, endX, endY, screen):#kolizja jeszcze nie dodan
 	
 	
 def main():
+	global graph
 
 	pygame.init()
 	pygame.display.set_caption("UltraGiereczka")
@@ -183,7 +184,10 @@ def main():
 	my = 0
 	iii = False
 	pointsToDraw = []
+	
+	#graph = loadGraph()
 	floodStart(2,2, screen)
+	#saveGraph(graph)
 	
 	poz = closestPointInGraph(graph, 0, 0)
 	enemies.append(Enemy(Point(poz[0], poz[1])))
