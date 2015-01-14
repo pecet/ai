@@ -21,7 +21,7 @@ from UltraCommon import *
 
 WIDTH = 1024
 HEIGHT = 768
-PLAYER_RADIUS=37
+PLAYER_RADIUS=36
 levelData = []
 levelData = loadLevel()
 graph = dict()
@@ -30,6 +30,8 @@ enemies = []
 
 POKA_GRAF = True
 POKA_SCIEZKE = True
+DODATKOWE_ODSUNIECIE_OD_SCIANY_WLACZ = True
+DODATKOWE_ODSUNIECIE = 13
 
 
 def checkIfEdgeInGraph(startNodeX, startNodeY, endNodeX, endNodeY): #zwraca true kiedy dany punk nie laczy sie z drugim punktem
@@ -55,6 +57,31 @@ def checkIntersection(testline):
 	for data in levelData:
 		if testline.intersects(data):
 			return False
+			
+	
+def checkDodatek(sX, sY):
+	if DODATKOWE_ODSUNIECIE_OD_SCIANY_WLACZ == False: 
+		return False
+	dodatek = DODATKOWE_ODSUNIECIE # dodatkowe odsuniecie od sciany etc.
+
+	for data in levelData:
+		line = Line(Point(sX - dodatek, sY), Point(sX + dodatek, sY))
+		if line.intersects(data):
+			return True
+			
+		line = Line(Point(sX, sY - dodatek), Point(sX, sY - dodatek))
+		if line.intersects(data):
+			return True
+			
+		line = Line(Point(sX - dodatek, sY - dodatek), Point(sX + dodatek, sY + dodatek))
+		if line.intersects(data):
+			return True			
+			
+		line = Line(Point(sX + dodatek, sY - dodatek), Point(sX - dodatek, sY + dodatek))
+		if line.intersects(data):
+			return True					
+	
+	return False
 					
 def floodFill(startX, startY, endX, endY, screen):#kolizja jeszcze nie dodana
 	kolej = []
@@ -63,40 +90,62 @@ def floodFill(startX, startY, endX, endY, screen):#kolizja jeszcze nie dodana
 	while True:
 		if not kolej: return
 		startX, startY, endX, endY = kolej.pop()
-		testLine = Line(Point(startX, startY), Point(endX, endY)) #musialem tu dodac 1 bo inaczej mialem float division by 0 error. Nie wiem czemu tak sie dzieje. Przez to jest tez ten blad z przechodzeniem czasem siatki przez przeszkody
-		if endX>WIDTH or endX<1 or endY>HEIGHT or endY<1 or checkIntersection(testLine)==False:
+		
+		sX = startX
+		sY = startY
+		eX = endX
+		eY = endY
+		
+		testLine = Line(Point(sX, sY), Point(eX, eY))
+		
+		# dodatkowe odsuniecie od sciany nie wiem jak to zrobic prosciej
+		testDodatek = checkDodatek(sX, sY) # = False # wylacza ten ficzer = sporo szybiej
+		
+		# tutaj jest bottleneck tego sprawdzania, bo trzeba powywalac niepotrzebne rzeczy, mozna by ich
+		# if testDodatek:
+			# graph.pop((sX,sY), None)
+			# for key in graph.keys():
+				# for value in range (0,len(graph[key])):
+					# if (sX, sY) in graph[key]:
+						# graph[key].remove((sX, sY))
+				
+		
+		if endX>WIDTH or endX<1 or endY>HEIGHT or endY<1 or checkIntersection(testLine)==False or testDodatek == True:
 			pass
 		else:
 			dodaj = checkIfEdgeInGraph(startX, startY, endX, endY) #przed dodaniem krawedzi do grafu sprawdzamy czy juz jej czasem tam nie ma
 
 			if dodaj == True:
-				graph.setdefault((startX, startY), []).append((endX, endY))
+				if not checkDodatek(endX, endY):
+					graph.setdefault((startX, startY), []).append((endX, endY))
 				
-			if checkIfEdgeInGraph(endX, endY, endX+PLAYER_RADIUS, endY) == True:
-				if [endX, endY, endX+PLAYER_RADIUS, endY] not in kolej: kolej.append([endX, endY, endX+PLAYER_RADIUS, endY])
-				#floodFill(endX, endY, endX+PLAYER_RADIUS, endY, screen)#w prawo
-			if checkIfEdgeInGraph(endX, endY, endX, endY+PLAYER_RADIUS) == True:
-				if [endX, endY, endX, endY+PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX, endY+PLAYER_RADIUS])
-				#floodFill(endX, endY, endX, endY+PLAYER_RADIUS, screen)#w gore
-			if checkIfEdgeInGraph(endX, endY, endX-PLAYER_RADIUS, endY) == True:
-				if [endX, endY, endX-PLAYER_RADIUS, endY] not in kolej: kolej.append([endX, endY, endX-PLAYER_RADIUS, endY])
-				#floodFill(endX, endY, endX-PLAYER_RADIUS, endY, screen)#w lewo
-			if checkIfEdgeInGraph(endX, endY, endX, endY-PLAYER_RADIUS) == True:
-				if [endX, endY, endX, endY-PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX, endY-PLAYER_RADIUS])
-				#floodFill(endX, endY, endX, endY-PLAYER_RADIUS, screen)#w dol
+			pr = PLAYER_RADIUS
+				
+			if checkIfEdgeInGraph(endX, endY, endX+pr, endY) == True:
+				if [endX, endY, endX+pr, endY] not in kolej: kolej.append([endX, endY, endX+pr, endY])
+				#floodFill(endX, endY, endX+pr, endY, screen)#w prawo
+			if checkIfEdgeInGraph(endX, endY, endX, endY+pr) == True:
+				if [endX, endY, endX, endY+pr] not in kolej: kolej.append([endX, endY, endX, endY+pr])
+				#floodFill(endX, endY, endX, endY+pr, screen)#w gore
+			if checkIfEdgeInGraph(endX, endY, endX-pr, endY) == True:
+				if [endX, endY, endX-pr, endY] not in kolej: kolej.append([endX, endY, endX-pr, endY])
+				#floodFill(endX, endY, endX-pr, endY, screen)#w lewo
+			if checkIfEdgeInGraph(endX, endY, endX, endY-pr) == True:
+				if [endX, endY, endX, endY-pr] not in kolej: kolej.append([endX, endY, endX, endY-pr])
+				#floodFill(endX, endY, endX, endY-pr, screen)#w dol
 				
 			#skosy
 			if True:
-				if checkIfEdgeInGraph(endX, endY, endX+PLAYER_RADIUS, endY+PLAYER_RADIUS) == True:
-					if [endX, endY, endX+PLAYER_RADIUS, endY + PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX+PLAYER_RADIUS, endY + PLAYER_RADIUS])				
-				if checkIfEdgeInGraph(endX, endY, endX-PLAYER_RADIUS, endY-PLAYER_RADIUS) == True:
-					if [endX, endY, endX-PLAYER_RADIUS, endY - PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX-PLAYER_RADIUS, endY - PLAYER_RADIUS])
+				if checkIfEdgeInGraph(endX, endY, endX+pr, endY+pr) == True:
+					if [endX, endY, endX+pr, endY + pr] not in kolej: kolej.append([endX, endY, endX+pr, endY + pr])				
+				if checkIfEdgeInGraph(endX, endY, endX-pr, endY-pr) == True:
+					if [endX, endY, endX-pr, endY - pr] not in kolej: kolej.append([endX, endY, endX-pr, endY - pr])
 
-				if checkIfEdgeInGraph(endX, endY, endX+PLAYER_RADIUS, endY-PLAYER_RADIUS) == True:
-					if [endX, endY, endX+PLAYER_RADIUS, endY - PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX+PLAYER_RADIUS, endY - PLAYER_RADIUS])
+				if checkIfEdgeInGraph(endX, endY, endX+pr, endY-pr) == True:
+					if [endX, endY, endX+pr, endY - pr] not in kolej: kolej.append([endX, endY, endX+pr, endY - pr])
 
-				if checkIfEdgeInGraph(endX, endY, endX-PLAYER_RADIUS, endY+PLAYER_RADIUS) == True:
-					if [endX, endY, endX-PLAYER_RADIUS, endY + PLAYER_RADIUS] not in kolej: kolej.append([endX, endY, endX-PLAYER_RADIUS, endY + PLAYER_RADIUS])				
+				if checkIfEdgeInGraph(endX, endY, endX-pr, endY+pr) == True:
+					if [endX, endY, endX-pr, endY + pr] not in kolej: kolej.append([endX, endY, endX-pr, endY + pr])				
 
 def floodFill_old(startX, startY, endX, endY, screen):#kolizja jeszcze nie dodana
 
@@ -134,7 +183,7 @@ def main():
 	my = 0
 	iii = False
 	pointsToDraw = []
-	floodStart(10,10, screen)
+	floodStart(2,2, screen)
 	
 	poz = closestPointInGraph(graph, 0, 0)
 	enemies.append(Enemy(Point(poz[0], poz[1])))
@@ -169,7 +218,7 @@ def main():
 		if POKA_GRAF:
 			for key in graph.keys():
 				for value in range (0,len(graph[key])):
-					pygame.draw.line(screen, (0, 0, 125), (key[0], key[1]), (graph[key][value][0], graph[key][value][1]),2)
+					pygame.draw.line(screen, (157, 181, 207), (key[0], key[1]), (graph[key][value][0], graph[key][value][1]),2)
 
 		#pygame.draw.line(screen, (0, 127, 0) if iii else (255, 0, 0), (testLine.p[0].x, testLine.p[0].y), (testLine.p[1].x, testLine.p[1].y),2)	
 				

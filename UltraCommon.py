@@ -202,6 +202,13 @@ class Enemy:
 			
 			otwarte.remove(aktualnePole)
 			zamkniete.append(aktualnePole)
+			
+			# to jest niepotrzebne, ale kiedys bylo, zostawmy z nostalgi
+			# try:
+				# gr = graph[aktualnePole]
+			# except KeyError:
+				# continue
+			
 			for sasiad in graph[aktualnePole]:
 				#print "   Sasiad = " + str(sasiad)
 				if sasiad in zamkniete:
