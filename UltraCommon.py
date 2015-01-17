@@ -86,6 +86,7 @@ class State:
 		
 class GoToRandomPointState(State):
 	def enter(self, enemy, graph):
+		if not graph: return 
 		rrr = random.choice(graph.keys())
 		enemy.goTo(rrr[0], rrr[1]) 
 	def execute(self, enemy, graph):

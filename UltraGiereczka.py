@@ -28,6 +28,7 @@ graph = dict()
 Enemy.graph = graph
 enemies = []
 
+GENERUJ_NOWY_GRAF = False #generujemy nowy graf, jesli nie to wczytujemy graf, plik grafu musi istniec(!!!)
 POKA_GRAF = True
 POKA_SCIEZKE = True
 DODATKOWE_ODSUNIECIE_OD_SCIANY_WLACZ = True
@@ -185,9 +186,13 @@ def main():
 	iii = False
 	pointsToDraw = []
 	
-	#graph = loadGraph()
-	floodStart(2,2, screen)
-	#saveGraph(graph)
+	if GENERUJ_NOWY_GRAF == False:
+		graph = loadGraph()
+	else:
+		floodStart(2,2, screen)
+		saveGraph(graph)
+
+	Enemy.graph = graph
 	
 	poz = closestPointInGraph(graph, 0, 0)
 	enemies.append(Enemy(Point(poz[0], poz[1])))
