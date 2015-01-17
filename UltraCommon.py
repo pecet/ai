@@ -60,10 +60,10 @@ class FSM:
 		self.enemy = enemy
 		self.state = None
 		self.graph = graph
+		
+	def getStateAsString(self):
+		return self.state.__class__.__name__
 	def update(self):
-		#---------- tutaj trzeba zmieniac stany ------------
-		
-		
 		#---------- tutaj wywolujemy rzeczy ktore robi wybrany stan -------
 		if self.state:
 			self.state.execute(self.enemy, self.graph)
@@ -90,16 +90,53 @@ class GoToRandomPointState(State):
 		rrr = random.choice(graph.keys())
 		enemy.goTo(rrr[0], rrr[1]) 
 	def execute(self, enemy, graph):
+		if enemy.hp < 75:
+			enemy.FSM.changeState(GoToApteczka())
+			return
+	
 		if enemy.followPath() == False:
 			self.enter(enemy, graph)
 		
 	def exit(self, enemy, graph):
 		pass
 	
+class GoToApteczka(State):
+	def enter(self, enemy, graph):
+		if not graph: return 
+		if not Pickup.pickups: return
+		
+		bestPickup = None
+		bestodl = 9999999
+		for p in Pickup.pickups:
+			x1 = enemy.pos.x
+			y1 = enemy.pos.y 
+			x2 = p.pos.x
+			y2 = p.pos.y
+			newodl = (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) 
+			if newodl < bestodl:
+				bestodl = newodl
+				bestPickup = p
+			
+		#rrr = random.choice(Pickup.pickups)
+		
+		rrr = bestPickup
+		enemy.goTo(rrr.pos.x, rrr.pos.y) 
+	def execute(self, enemy, graph):
+		if enemy.hp > 75:
+			enemy.FSM.changeState(GoToRandomPointState())
+			return	
+	
+		if enemy.followPath() == False:
+			self.enter(enemy, graph)
+		
+	def exit(self, enemy, graph):
+		pass
+		
 
 class Enemy:
 	# statyczne zmienne
 	graph = None
+	enemies = None
 
 	def __init__(self, pos = Point()):
 		self.pos = pos
@@ -108,6 +145,7 @@ class Enemy:
 		self.drogaIndeks = 0
 		self.FSM = FSM(self, Enemy.graph)
 		self.FSM.changeState(GoToRandomPointState())
+		self.hp = 1
 	def draw(self, screen):
 		pygame.draw.circle(screen, (255, 0, 0), (self.pos.x, self.pos.y), self.r)
 		
@@ -275,7 +313,29 @@ class Enemy:
 		
 		return True
 			
+
+class Pickup:
+	#statyczne
+	pickups = None
+
+	def __init__(self, type = 0, pos = Point()):
+		self.r = 15
+		self.pos = pos
+		self.type = type # jakby kiedys bylo wiecej, a nie wiem czy bedzie
+	def draw(self, screen):
+		pygame.draw.circle(screen, (123, 123, 123), (self.pos.x, self.pos.y), self.r)
+		pygame.draw.line(screen, (240, 0, 0), (self.pos.x + 9, self.pos.y), (self.pos.x - 9, self.pos.y), 5)
+		pygame.draw.line(screen, (240, 0, 0), (self.pos.x, self.pos.y + 9), (self.pos.x, self.pos.y - 9), 5)
+	def update(self):
+		for enemy in Enemy.enemies:
+			if circleCollision(self.pos.x, self.pos.y, self.r, enemy.pos.x, enemy.pos.y, enemy.r):
+				enemy.hp += 25
+				Pickup.pickups.remove(self)
+				return
+
 		
+		
+	
 	
 def saveGraph(graph, output="graph_pickle.txt"):
 	pickle.dump(graph, open(output, "wb" ))
@@ -316,6 +376,11 @@ def updateAllEnemies(enemies):
 		#enemy.followPath()		
 		enemy.FSM.update()
 		
+def updateAndDrawPickups(pickups, screen):
+	for pickup in pickups:
+		pickup.draw(screen)
+		pickup.update()
+		
 def closestPointInGraph(graph, x, y): # najblizszy punkt w grafie do podanego punktu
 	odl = 9999999
 	co = None
@@ -326,6 +391,10 @@ def closestPointInGraph(graph, x, y): # najblizszy punkt w grafie do podanego pu
 			co = key
 	
 	return co
+	
+def circleCollision(x1, y1, r1, x2, y2, r2):
+	return (x1 - x2) ** 2 + (y1 - y2) ** 2 <= (r1 + r2) ** 2
+		
 		
 		
 		

@@ -27,8 +27,11 @@ levelData = loadLevel()
 graph = dict()
 Enemy.graph = graph
 enemies = []
+Enemy.enemies = enemies 
+pickups = []
+Pickup.pickups = pickups
 
-GENERUJ_NOWY_GRAF = False #generujemy nowy graf, jesli nie to wczytujemy graf, plik grafu musi istniec(!!!)
+GENERUJ_NOWY_GRAF = False # czy generujemy nowy graf, jesli nie to wczytujemy graf, plik grafu musi istniec(!!!)
 POKA_GRAF = True
 POKA_SCIEZKE = True
 DODATKOWE_ODSUNIECIE_OD_SCIANY_WLACZ = True
@@ -168,6 +171,10 @@ def floodFill_old(startX, startY, endX, endY, screen):#kolizja jeszcze nie dodan
 		if checkIfEdgeInGraph(endX, endY, endX, endY-PLAYER_RADIUS) == True:
 			floodFill(endX, endY, endX, endY-PLAYER_RADIUS, screen)#w dol			
 	
+def randomowePickupy():
+	if len(pickups) < 3:
+		rrr = random.choice(graph.keys())
+		pickups.append(Pickup(0, Point(rrr[0], rrr[1])))
 	
 def main():
 	global graph
@@ -175,6 +182,7 @@ def main():
 	pygame.init()
 	pygame.display.set_caption("UltraGiereczka")
 	screen = pygame.display.set_mode((WIDTH,HEIGHT))
+	font = pygame.font.SysFont("monospace", 21)
 	
 	clickPos = None
 	
@@ -194,6 +202,8 @@ def main():
 
 	Enemy.graph = graph
 	
+	
+	# ----------------------------------------- poczatkowe rzeczy
 	poz = closestPointInGraph(graph, 0, 0)
 	enemies.append(Enemy(Point(poz[0], poz[1])))
 	
@@ -233,6 +243,17 @@ def main():
 				
 		updateAllEnemies(enemies)
 		drawAllEnemies(enemies, screen)	
+		
+		updateAndDrawPickups(pickups, screen)
+		randomowePickupy()
+		
+		# --- hud
+		i = 0
+		for enemy in enemies:
+			txt = font.render("PLAYER{0} {1} = HP: {2}".format(i, enemy.FSM.getStateAsString(), enemy.hp) ,2,(0,0,0))
+			screen.blit(txt,(0,0 + (i * 28)))
+			i += 1
+		
 		
 		if enemies[0].droga and POKA_SCIEZKE:
 			rodzic = None
