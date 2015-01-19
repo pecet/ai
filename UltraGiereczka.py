@@ -210,6 +210,9 @@ def main():
 	poz = closestPointInGraph(graph, WIDTH, HEIGHT)
 	enemies.append(Enemy(Point(poz[0], poz[1])))
 	
+	poz = closestPointInGraph(graph, WIDTH, 0)
+	enemies.append(Enemy(Point(poz[0], poz[1])))
+	
 		
 	updateClock = pygame.time.Clock()		
 	while True:

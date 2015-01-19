@@ -126,8 +126,24 @@ class GoToApteczka(State):
 			enemy.FSM.changeState(GoToRandomPointState())
 			return	
 	
+	
+		mamyTamJeszczeApteczke = False # sprawdzamy czy apteczka dalej jest tam gdzie idziemy, bo np. inny przeciwnik mogl ja juz zjesc :)
+		if enemy.droga:
+			ost = enemy.droga[-1] # ostatni element drogi
+			for p in Pickup.pickups:
+				x = p.pos.x
+				y = p.pos.y 
+				if ost[0] == x and ost[1] == y:
+					mamyTamJeszczeApteczke = True
+					break
+			
 		if enemy.followPath() == False:
 			self.enter(enemy, graph)
+			return
+		
+		if mamyTamJeszczeApteczke == False:
+			self.enter(enemy, graph)
+			return			
 		
 	def exit(self, enemy, graph):
 		pass
@@ -329,7 +345,7 @@ class Pickup:
 	def update(self):
 		for enemy in Enemy.enemies:
 			if circleCollision(self.pos.x, self.pos.y, self.r, enemy.pos.x, enemy.pos.y, enemy.r):
-				enemy.hp += 25
+				enemy.hp += 20
 				Pickup.pickups.remove(self)
 				return
 
