@@ -21,21 +21,25 @@ from UltraCommon import *
 
 WIDTH = 1024
 HEIGHT = 768
-PLAYER_RADIUS=36
+PLAYER_RADIUS=35
 levelData = []
 levelData = loadLevel()
 graph = dict()
 Enemy.graph = graph
 enemies = []
 Enemy.enemies = enemies 
+bullets = []
+Bullet.bullets = bullets
+#sightlines = []
+#Sightline.sightlines = sightlines 
 pickups = []
 Pickup.pickups = pickups
 
-GENERUJ_NOWY_GRAF = False # czy generujemy nowy graf, jesli nie to wczytujemy graf, plik grafu musi istniec(!!!)
+GENERUJ_NOWY_GRAF = True # czy generujemy nowy graf, jesli nie to wczytujemy graf, plik grafu musi istniec(!!!)
 POKA_GRAF = True
 POKA_SCIEZKE = True
 DODATKOWE_ODSUNIECIE_OD_SCIANY_WLACZ = True
-DODATKOWE_ODSUNIECIE = 13
+DODATKOWE_ODSUNIECIE = 20
 
 
 def checkIfEdgeInGraph(startNodeX, startNodeY, endNodeX, endNodeY): #zwraca true kiedy dany punk nie laczy sie z drugim punktem
@@ -210,13 +214,14 @@ def main():
 	poz = closestPointInGraph(graph, WIDTH, HEIGHT)
 	enemies.append(Enemy(Point(poz[0], poz[1])))
 	
-	poz = closestPointInGraph(graph, WIDTH, 0)
-	enemies.append(Enemy(Point(poz[0], poz[1])))
+	#poz = closestPointInGraph(graph, WIDTH, 0)
+	#enemies.append(Enemy(Point(poz[0], poz[1])))
+	
 	
 		
 	updateClock = pygame.time.Clock()		
 	while True:
-		dt = updateClock.tick(120) # im wiecej tutaj, tym szybciej bedzie sie wszystko dzialo, tez chodzenie przeciwnikow
+		dt = updateClock.tick(75) # im wiecej tutaj, tym szybciej bedzie sie wszystko dzialo, tez chodzenie przeciwnikow
 		dt = float(dt) / 1000 #przeliczamy milisekundy do sekund
 		#print dt
 	
@@ -224,25 +229,50 @@ def main():
 		screen.fill((222,222,222)) 
 
 		testLine = Line(Point(mx, my), Point(mx + 50, my))
-			
-
+		visibilityline = Line(Point(enemies[0].pos.x, enemies[0].pos.y), Point(enemies[1].pos.x, enemies[1].pos.y))
+		testCircle = Circle(mx, my, 10)
+		#testBullet = Bullet(Point(mx, my), (mx, my))
 		
 		iii = False
-
+		shootable = False
+		iiicircle = False
 				
 		for data in levelData:
-			pygame.draw.line(screen, (0, 0, 0), (data.p[0].x, data.p[0].y), (data.p[1].x, data.p[1].y),2)
-			single = testLine.intersects(data)
+			pygame.draw.line(screen, (0, 0, 0), (data.p[0].x, data.p[0].y), (data.p[1].x, data.p[1].y),5)
+			single = testLine.intersects(data) #test
+			single2 = visibilityline.intersects(data) #needed
+			#single3 = data.circleLineCollision(testCircle[0], testCircle[1], testCircle[2]) #test
+			single4 = testCircle.circleLineCollision(data) #test
+			#for bu in bullets:
+			#	circleLineCollision((data.p[0].x, data.p[0].y), (data.p[1].x, data.p[1].y), bu.x, bu.y, bu.r)
 			#print single
 			if single:  # wystarczy przeciecie z jedna linia
 				iii = True
-				
+			if single2:
+				shootable = True
+			if single4:
+				iiicircle = True
+			#for enemy in enemies:
+			#	
+			#	for nextEm in enemies:
+			#		enemy.visibilityline = Line(Point(enemy.pos.x, enemy.pos.y), Point(nextEm.pos.x, nextEm.pos.y))
+			#		isShootable = enemy.visibilityline.intersects(data)
+			#		pygame.draw.line(screen, (0, 0, 157), (enemy.pos.x, enemy.pos.y), (nextEm.pos.x, nextEm.pos.y), 1)
+			#		
+			#		if isShootable:
+			#			enemy.shootable = True
+			#			pygame.draw.line(screen, (0, 157, 0), (enemy.pos.x, enemy.pos.y), (nextEm.pos.x, nextEm.pos.y), 2)
+			#		else:
+			#			enemy.shootable = False
+			#			pygame.draw.line(screen, (255, 0, 0), (enemy.pos.x, enemy.pos.y), (nextEm.pos.x, nextEm.pos.y), 2)
+
 		if POKA_GRAF:
 			for key in graph.keys():
 				for value in range (0,len(graph[key])):
 					pygame.draw.line(screen, (157, 181, 207), (key[0], key[1]), (graph[key][value][0], graph[key][value][1]),2)
-
+					
 		#pygame.draw.line(screen, (0, 127, 0) if iii else (255, 0, 0), (testLine.p[0].x, testLine.p[0].y), (testLine.p[1].x, testLine.p[1].y),2)	
+		pygame.draw.circle(screen, (0, 127, 0) if iiicircle else (255, 0, 0), (mx, my), 10, 2)	
 				
 		updateAllEnemies(enemies)
 		drawAllEnemies(enemies, screen)	
@@ -256,7 +286,24 @@ def main():
 			txt = font.render("PLAYER{0} {1} = HP: {2}".format(i, enemy.FSM.getStateAsString(), enemy.hp) ,2,(0,0,0))
 			screen.blit(txt,(0,0 + (i * 28)))
 			i += 1
+			#for nextEm in enemies:
+			#	pygame.draw.line(screen, (255, 0, 0) if shootable else (0, 157, 0), (enemy.pos.x, enemy.pos.y), (nextEm.pos.x, nextEm.pos.y), 2)
 		
+			for nextEm in enemies:
+				pygame.draw.line(screen, (255, 0, 0) if shootable else (0, 157, 0), (enemy.pos.x, enemy.pos.y), (nextEm.pos.x, nextEm.pos.y), 1)
+				
+			#for nextEm in enemies: #not working
+			#	enemy.visibilityline = Line(Point(enemy.pos.x, enemy.pos.y), Point(nextEm.pos.x, nextEm.pos.y))
+			#	for data in levelData:
+			#		enemy.isShootable = enemy.visibilityline.intersects(data)
+			#	pygame.draw.line(screen, (0, 0, 157), (enemy.pos.x, enemy.pos.y), (nextEm.pos.x, nextEm.pos.y), 1)
+			#	
+			#	if enemy.isShootable:
+			#		enemy.shootable = True
+			#		pygame.draw.line(screen, (0, 157, 0), (enemy.pos.x, enemy.pos.y), (nextEm.pos.x, nextEm.pos.y), 2)
+			#	else:
+			#		enemy.shootable = False
+			#		pygame.draw.line(screen, (255, 0, 0), (enemy.pos.x, enemy.pos.y), (nextEm.pos.x, nextEm.pos.y), 2)
 		
 		if enemies[0].droga and POKA_SCIEZKE:
 			rodzic = None
@@ -269,10 +316,14 @@ def main():
 		if closest:
 			pygame.draw.circle(screen, (255, 0, 255), closest, 5)
 				
+		for bu in bullets:
+			bu.update(enemies, bullets, levelData, dt)
+			bu.draw(screen)
+			
 			
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:		
-				sys.exit(0)		
+				sys.exit(0)
 			elif event.type == pygame.MOUSEMOTION:
 				mx, my = pygame.mouse.get_pos()
 				closest = closestPointInGraph(graph, mx, my)
@@ -280,6 +331,11 @@ def main():
 			elif event.type == pygame.MOUSEBUTTONUP:
 				if closest:
 					enemies[0].goTo(closest[0], closest[1]) 
+			elif event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_SPACE:
+					#print "shoot"
+					enemies[0].shoot(bullets, enemies[0], enemies[1])
+					#print bullets
 
 	
 	

@@ -11,6 +11,86 @@ import math
 import pygame
 import random
 import pickle
+from vec2d import Vec2d
+try:
+	import pyximport
+	pyximport.install()
+	
+	import intersections_cy as inter
+	from intersections_cy import vec
+except ImportError:
+	import intersections_py as inter
+	from intersections_py import vec
+
+BULLET_SPEED = 1500
+#bullets = []
+#Bullet.bullets = bullets
+
+class Circle:
+	def __init__(self, x, y, radius):
+		self.x = x
+		self.y = y
+		self.radius = radius
+	def __repr__(self):
+		return "x:" + str(self.x) + " y:" + str(self.y) + " radius:" + str(self.radius)
+	def dot(self, v):
+		return self.x*v.x + self.y*v.y
+	def lensq(self):
+		return self.dot(self)	
+	def len(self):
+		return sqrt(self.lensq())
+		
+	def circleLineCollision(self, Line):
+		testseg = inter.Segment(vec(Line[0].x,Line[0].y), vec(Line[1].x,Line[1].y))
+		testcirc = inter.Circle(vec(self.x, self.y), self.radius)
+		#print inter.segment_circle(testseg, testcirc).len()
+		if (inter.segment_circle(testseg, testcirc).len()>0):
+			print 'col!'
+			return True
+		
+		'''
+	def circleLineCollision(self, Line):
+		baX = float(Line[1].x - Line[0].x)
+		baY = float(Line[1].y - Line[0].y)
+		caX = float(self.x - Line[0].x)
+		caY = float(self.y - Line[0].y)
+		
+		a = (baX * baX) + (baY * baY)
+		bBy2 = (baX * caX) + (baY * caY)
+		c = (float(caX * caX)) + (float(caY * caY)) - (float(self.radius * self.radius))
+		pby2 = float(bBy2 / a)
+		q = c/a
+		disc = pby2 * pby2 - (q)
+		if (disc < 0):
+			return False
+		else:
+			print Line
+			print "collCircle"
+			return True
+			#if (delta < 0): # No intersection
+			return False'''
+	'''# Transform to local coordinates
+		
+		LocalP1X = float(Line[0].x - self.x)
+		LocalP1Y = float(Line[0].y - self.y)
+		LocalP2X = float(Line[1].x - self.x)
+		LocalP2Y = float(Line[1].y - self.y)
+		# Precalculate this value. We use it often
+		P2MinusP1X = float(LocalP2X - LocalP1X)
+		P2MinusP1Y = float(LocalP2Y - LocalP1Y)
+
+		a = float((P2MinusP1X) * (P2MinusP1X)) + float((P2MinusP1Y) * (P2MinusP1Y))
+		b = float(2 * ((P2MinusP1X * LocalP1X)) + float((P2MinusP1Y * LocalP1Y)))
+		c = (float(LocalP1X * LocalP1X)) + (float(LocalP1Y * LocalP1Y)) - (float(self.radius * self.radius))
+		delta = b * b - (4 * a * c)
+		if (delta < 0):
+			return False
+		else:
+			print Line
+			print "collCircle"
+			return True
+			#if (delta < 0): # No intersection
+			return False'''
 
 class Point:
 	def __init__(self, x = 0, y = 0):
@@ -26,6 +106,8 @@ class Line:
 		self.p.append(p1)
 	def __repr__(self):
 		return "{p[0]=" + str(self.p[0]) + "; p[1]=" + str(self.p[1]) + "}"
+	def __getitem__(self, key):
+		return (self.p[key])
 	def intersects(self, other):
 		return self.__line_intersects(self.p[0].x, self.p[0].y, self.p[1].x, self.p[1].y, other.p[0].x, other.p[0].y, other.p[1].x, other.p[1].y)
 		
@@ -50,10 +132,11 @@ class Line:
 		#print s, t
 		 
 		if (s >= 0 and s <= 1 and t >= 0 and t <= 1):
+			#print p0_x, p0_y, p1_x, p1_y, p2_x, p2_y, p3_x, p3_y
+			#print "collLine"
 			return True
 		 
 		return False
-
 		
 class FSM:
 	def __init__(self, enemy, graph):
@@ -148,6 +231,12 @@ class GoToApteczka(State):
 	def exit(self, enemy, graph):
 		pass
 		
+class ShootEnemy(State):
+	def enter(self, enemy, graph):
+		if not graph: return 
+	def exit(self, enemy, graph):
+		pass		
+		
 
 class Enemy:
 	# statyczne zmienne
@@ -156,14 +245,18 @@ class Enemy:
 
 	def __init__(self, pos = Point()):
 		self.pos = pos
-		self.r = 5
+		self.r = 10
 		self.droga = [] 
 		self.drogaIndeks = 0
 		self.FSM = FSM(self, Enemy.graph)
 		self.FSM.changeState(GoToRandomPointState())
 		self.hp = 1
+		self.color = random.randint(10,255)
+		self.color2 = random.randint(10,255)
+		self.color3 = random.randint(10,255)
+		
 	def draw(self, screen):
-		pygame.draw.circle(screen, (255, 0, 0), (self.pos.x, self.pos.y), self.r)
+		pygame.draw.circle(screen, (self.color, self.color2, self.color3), (self.pos.x, self.pos.y), self.r)
 		
 	def copyDict(self, graph, wartosc = 0):
 		ret = dict()
@@ -300,6 +393,9 @@ class Enemy:
 		self.droga = droga
 		self.drogaIndeks = 0
 		
+	def shoot(self, bullets, shooter, enemy):
+		bullets.append(Bullet(self, enemy))
+		
 	def followPath(self): # true jak sie cos przesunelismy, false jak sie nic nie przesunelismy (bo np. koniec drogi)
 		if not self.droga:
 			return False
@@ -323,12 +419,75 @@ class Enemy:
 		if self.pos.y < y:
 			self.pos.y += 1
 			#return True
-		elif self.pos.y > y:
+		elif self.pos.y > y:	
 			self.pos.y -= 1
-			#return True						
+			#return True
 		
 		return True
+	
+class Bullet:
+
+	def __init__(self, shooter, enemy):
+		self.x = shooter.pos.x
+		self.y = shooter.pos.y
+		self.r = 5
+		self.velocity = Vec2d(enemy.pos.x - shooter.pos.x  , enemy.pos.y - shooter.pos.y)
+		self.heading = Vec2d(0, 0)
+		self.side = Vec2d(0, 0)
+		
+		self.speed = BULLET_SPEED
+		#print self.velocity
+		
+	def draw(self, screen):
+		#print "I'm drawn!"
+		pygame.draw.circle(screen, (255, 0, 0), (int(self.x), int(self.y)), self.r, 0) #kolor czerwony i mala predkosc tylko do testow
+	
+	def position(self):
+		return Vec2d(self.x, self.y)
+		'''
+	def circleLineCollision(self, Line):
+	# Transform to local coordinates
+		#print Line
+		LocalP1X = Line[0].x - self.x
+		LocalP1Y = Line[0].y - self.y
+		LocalP2X = Line[1].x - self.x
+		LocalP2Y = Line[1].y - self.y
+		# Precalculate this value. We use it often
+		P2MinusP1X = LocalP2X - LocalP1X
+		P2MinusP1Y = LocalP2Y - LocalP1Y
+
+		a = (P2MinusP1X) * (P2MinusP1X) + (P2MinusP1Y) * (P2MinusP1Y)
+		b = 2 * ((P2MinusP1X * LocalP1X) + (P2MinusP1Y * LocalP1Y))
+		c = (LocalP1X * LocalP1X) + (LocalP1Y * LocalP1Y) - (self.r * self.r)
+		delta = b * b - (4 * a * c)
+		if (delta >= 0):
+			return True'''
+	def bulletLineCollision(self, Line):
+		testCircle = Circle(self.x, self.y, self.r)
+		if testCircle.circleLineCollision(Line):
+			return True
 			
+	def update(self, enemies, bullets, levelData, dt):#powinien byc tu jeszcze shooter i obstacles?
+		self.velocity += dt
+		#self.velocity = truncate(self.velocity, self.speed)
+		self.heading = self.velocity.normalized()
+		self.speed = BULLET_SPEED
+		newPosition = Vec2d(self.x, self.y) + (self.heading*self.speed * dt)
+		self.x = newPosition.x
+		self.y = newPosition.y
+		#
+		for enemy in Enemy.enemies: #kolizja z przeszkodami (przez przeciwnikow ma chyba przenikac)
+			if circleCollision(enemy.pos.x, enemy.pos.y, enemy.r, self.x, self.y, self.r):
+				bullets.remove(self)
+				print "collision"
+				break
+				
+		for data in levelData:
+			#if circleLineCollision((data.p[0].x, data.p[0].y), (data.p[1].x, data.p[1].y), self.x, self.y, self.r):
+			if self.bulletLineCollision(data):
+				bullets.remove(self)
+				print "AAAAAAAAA"
+				break
 
 class Pickup:
 	#statyczne
@@ -392,6 +551,14 @@ def updateAllEnemies(enemies):
 		#enemy.followPath()		
 		enemy.FSM.update()
 		
+def drawAllBullets(bullets, screen):
+	for bullet in bullets:
+		bullet.draw(screen)
+		
+#def updateAllBullets(bullets):
+	#for enemy in enemies:
+	#	enemy.draw(screen)
+		
 def updateAndDrawPickups(pickups, screen):
 	for pickup in pickups:
 		pickup.draw(screen)
@@ -411,7 +578,37 @@ def closestPointInGraph(graph, x, y): # najblizszy punkt w grafie do podanego pu
 def circleCollision(x1, y1, r1, x2, y2, r2):
 	return (x1 - x2) ** 2 + (y1 - y2) ** 2 <= (r1 + r2) ** 2
 		
-		
+#def circleLineCollision(LineP1, LineP2, CircleCentrex, CircleCentrey, Radius):
+	# Transform to local coordinates
+#	LocalP1X = LineP1[0] - CircleCentrex
+#	LocalP1Y = LineP1[1] - CircleCentrex
+#	LocalP2X = LineP2[0] - CircleCentrey
+#	LocalP2Y = LineP2[1] - CircleCentrey
+	# Precalculate this value. We use it often
+#	P2MinusP1X = LocalP2X - LocalP1X
+#	P2MinusP1Y = LocalP2Y - LocalP1Y
+
+#	a = (P2MinusP1X) * (P2MinusP1X) + (P2MinusP1Y) * (P2MinusP1Y)
+#	b = 2 * ((P2MinusP1X * LocalP1X) + (P2MinusP1Y * LocalP1Y))
+#	c = (LocalP1X * LocalP1X) + (LocalP1Y * LocalP1Y) - (Radius * Radius)
+#	delta = b * b - (4 * a * c)
+#	if (delta >= 0):
+#		return True
+	#if (delta < 0): # No intersection
+	#	return False
+	#elif (delta == 0): # One intersection
+	#	u = -b / (2 * a)
+	#	return False#LineP1 + (u * P2MinusP1)
+	#	# Use LineP1 instead of LocalP1 because we want our answer in global
+	#	#   space, not the circle's local space
+	#elif (delta > 0): # Two intersections
+	#	SquareRootDelta = math.sqrt(delta)
+	#
+	#	u1 = (-b + SquareRootDelta) / (2 * a)
+	#	u2 = (-b - SquareRootDelta) / (2 * a)
+	#	print "!!!!!!!!!collision!"
+	#	return True#{ LineP1 + (u1 * P2MinusP1) ; LineP1 + (u2 * P2MinusP1)}
+
 		
 		
 		
